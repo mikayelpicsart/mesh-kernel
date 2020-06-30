@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import App from './App';
+import App from './components/App';
+import { ReadyWasm } from './components/wasmReady';
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+  <Suspense fallback="Loading ..." >
+    <ReadyWasm>
+      <App />
+    </ReadyWasm>
+  </Suspense>,
   document.getElementById('root')
 );
 
