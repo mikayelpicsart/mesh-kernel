@@ -41,14 +41,14 @@ function App() {
         };
         const transformMatrix = pi.graph.geometry.NewTransformMatrix(transformMatrixData);
         const input2 = pi.graph.value.Image_ARGB_8888();
-        // const logtransformMatrixData = pi.graph.basic_operations.Log(transformMatrix);
-        // const logprojectionMatrix = pi.graph.basic_operations.Log(projectionMatrix);
+        // const logTransformMatrixData = pi.graph.basic_operations.Log(transformMatrix);
+        // const logProjectionMatrix = pi.graph.basic_operations.Log(projectionMatrix);
         const mesh = pi.graph.rendering.Mesh({
           input: input1Copy,
           image: input2,
           // blend_mode: pi.graph.value.Int(1),
           model_matrix: transformMatrix,
-          // projection_matrix: logprojectionMatrix
+          // projection_matrix: logProjectionMatrix
         });
 
         const size = pi.graph.value.Point2i();
