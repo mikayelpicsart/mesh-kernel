@@ -369,6 +369,7 @@ textarea {
 
 .canvasWarper {
   display: flex;
+  padding: 10px;
   
 }
 .canvasWarper > canvas {

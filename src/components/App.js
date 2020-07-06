@@ -50,7 +50,7 @@ function App() {
           model_matrix: transformMatrix,
           // projection_matrix: logprojectionMatrix
         });
-  
+
         const size = pi.graph.value.Point2i();
         const view = pi.graph.undocumented.RXImageView({ value: mesh, background: pi.graph.value.Image_ARGB_8888(), size: size, name: 'ImageView' });
         unstable_batchedUpdates(() => {
@@ -104,7 +104,7 @@ function App() {
       session.runValue(ivOut.output);
     });
   }, [cord, ivOut, session])
-  
+
   const handlerClick = useCallback(async () => {
     const buffer = await getBufferFromUrl("https://cdn164.picsart.com/225975557060900.png");
     session.accessGraph(() => {
@@ -132,17 +132,17 @@ function App() {
   }, [pi, session, size, input1, ivOut])
   return (
     <div>
-      <div><input type='file' accept="image/png, image/jpeg" onChange={handlerFile} /></div>
-      <div><input type='range' min='0' max='100' defaultValue={100} onChange={handlerChangeScaleX} /> <span>ScaleX </span> </div>
-      <div><input type='range' min='0' max='100' defaultValue={100} onChange={handlerChangeScaleY} /> <span>ScaleY </span> </div>
-      <div><input type='range' min='0' max='100' onChange={handlerChangeRotateX} /> <span>RotateX </span> </div>
-      <div><input type='range' min='0' max='100' onChange={handlerChangeRotateY} /> <span>RotateY </span> </div>
-      <div><input type='range' min='0' max='100' onChange={handlerChangeTest} /> <span> Test </span> </div>
-      <div> <button type='button' onClick={handlerClick} > Add Sticker </button></div>
       <div className='canvasWarper' >
-        <div className='leftColumn'>test</div>
+        <div>
+          <div><input type='file' accept="image/png, image/jpeg" onChange={handlerFile} /></div>
+          <div><input type='range' min='0' max='100' defaultValue={100} onChange={handlerChangeScaleX} /> <span>ScaleX </span> </div>
+          <div><input type='range' min='0' max='100' defaultValue={100} onChange={handlerChangeScaleY} /> <span>ScaleY </span> </div>
+          <div><input type='range' min='0' max='100' onChange={handlerChangeRotateX} /> <span>RotateX </span> </div>
+          <div><input type='range' min='0' max='100' onChange={handlerChangeRotateY} /> <span>RotateY </span> </div>
+          <div><input type='range' min='0' max='100' onChange={handlerChangeTest} /> <span> Test </span> </div>
+          <div> <button type='button' onClick={handlerClick} > Add Sticker </button></div>
+        </div>
         <div><canvas ref={canvasRef} /></div>
-        <div className='rightColumn'>test</div>
       </div>
     </div>
   );
