@@ -64,43 +64,12 @@ function App() {
       });
     })()
   }, [pi]);
-  const handlerChangeScaleX = useCallback((e) => {
-    const { value } = e.target;
-    const valueMap = ((+value) / 100);
+  const handlerChange = useCallback((e) => {
+    const { value, name, dataset: { start = 0 } = {} } = e.target;
+    console.log(name, value, start);
+    const newValue = parseFloat(value) / 100 + parseFloat(start);
     session.accessGraph(() => {
-      cord.sX.value = Number(valueMap);
-      session.runValue(ivOut.output);
-    });
-  }, [cord, ivOut, session])
-  const handlerChangeScaleY = useCallback((e) => {
-    const { value } = e.target;
-    const valueMap = ((+value) / 100);
-    session.accessGraph(() => {
-      cord.sY.value = Number(valueMap);
-      session.runValue(ivOut.output);
-    });
-  }, [cord, ivOut, session])
-  const handlerChangeRotateX = useCallback((e) => {
-    const { value } = e.target;
-    const valueMap = 0.5 - ((+value) / 100);
-    session.accessGraph(() => {
-      cord.tX.value = Number(valueMap);
-      session.runValue(ivOut.output);
-    });
-  }, [cord, ivOut, session])
-  const handlerChangeRotateY = useCallback((e) => {
-    const { value } = e.target;
-    const valueMap = 0.5 - ((+value) / 100);
-    session.accessGraph(() => {
-      cord.tY.value = Number(valueMap);
-      session.runValue(ivOut.output);
-    });
-  }, [cord, ivOut, session])
-  const handlerChangeTest = useCallback((e) => {
-    const { value } = e.target;
-    const valueMap = ((+value) / 100);
-    session.accessGraph(() => {
-      cord.rZ.value = Number(valueMap);
+      cord[name].value = Number(newValue);
       session.runValue(ivOut.output);
     });
   }, [cord, ivOut, session])
@@ -135,11 +104,11 @@ function App() {
       <div className='canvasWarper' >
         <div>
           <div><input type='file' accept="image/png, image/jpeg" onChange={handlerFile} /></div>
-          <div><input type='range' min='0' max='100' defaultValue={100} onChange={handlerChangeScaleX} /> <span>ScaleX </span> </div>
-          <div><input type='range' min='0' max='100' defaultValue={100} onChange={handlerChangeScaleY} /> <span>ScaleY </span> </div>
-          <div><input type='range' min='0' max='100' onChange={handlerChangeRotateX} /> <span>RotateX </span> </div>
-          <div><input type='range' min='0' max='100' onChange={handlerChangeRotateY} /> <span>RotateY </span> </div>
-          <div><input type='range' min='0' max='100' onChange={handlerChangeTest} /> <span> Test </span> </div>
+          <div><input type='range' min='0' max='100' name='sX' defaultValue={100} onChange={handlerChange} /> <span>ScaleX </span> </div>
+          <div><input type='range' min='0' max='100' name='sY' defaultValue={100} onChange={handlerChange} /> <span>ScaleY </span> </div>
+          <div><input type='range' min='0' max='100' data-start={-0.5} name='tX' onChange={handlerChange} /> <span>RotateX </span> </div>
+          <div><input type='range' min='0' max='100' data-start={-0.5} name='tY' onChange={handlerChange} /> <span>RotateY </span> </div>
+          <div><input type='range' min='0' max='100' name='rZ' onChange={handlerChange} /> <span> Test </span> </div>
           <div> <button type='button' onClick={handlerClick} > Add Sticker </button></div>
         </div>
         <div><canvas ref={canvasRef} /></div>
