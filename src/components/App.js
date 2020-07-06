@@ -66,7 +66,6 @@ function App() {
   }, [pi]);
   const handlerChange = useCallback((e) => {
     const { value, name, dataset: { start = 0 } = {} } = e.target;
-    console.log(name, value, start);
     const newValue = parseFloat(value) / 100 + parseFloat(start);
     session.accessGraph(() => {
       cord[name].value = Number(newValue);
