@@ -2,7 +2,7 @@ import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './components/App';
-import { ReadyWasm } from './components/wasmReady';
+import { ReadyWasm } from './helpers/wasmReady';
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
