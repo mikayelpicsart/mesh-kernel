@@ -38,7 +38,6 @@ export class Layer {
     setInput(buffer) {
         this._session.accessGraph(() => {
             this.input.value = this._pi.core.ImageARGB8.create(buffer);
-            this._session.runValue(this._view.output);
         });
     }
     get _session() {
@@ -55,7 +54,8 @@ export class Layer {
     }
     render() {
         this._session.accessGraph(() => {
-            
+            console.log(this._view)
+            this._session.runValue(this._view.output);
         });
     }
 }
