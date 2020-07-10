@@ -1,12 +1,12 @@
 import React, { createContext } from 'react';
-import { initializeLibrary } from './pi';
+import { getWasm } from './pi';
 
 export const WasmContext = createContext(null);
 
 export function ReadyWasm({ children }) {
-    const wasm = useOnRuntimeInitializedReady();
+    useOnRuntimeInitializedReady();
     return (
-        <WasmContext.Provider value={wasm}>
+        <WasmContext.Provider>
             {children}
         </WasmContext.Provider>
     );
@@ -16,19 +16,17 @@ const onRuntimeInitialized = { status: 'not-init', promise: null, module: null }
 
 function useOnRuntimeInitializedReady() {
     if (onRuntimeInitialized.status === 'reject') {
-        return onRuntimeInitialized.module;
+        return;
     }
     if (onRuntimeInitialized.status === 'resolve') {
-        return onRuntimeInitialized.module;
+        return;
     }
     if (onRuntimeInitialized.status === 'pending') {
         throw onRuntimeInitialized.promise;
     }
     if (onRuntimeInitialized.status === 'not-init') {
         onRuntimeInitialized.status = 'pending';
-        throw onRuntimeInitialized.promise = initializeLibrary().then(wasm => {
-            console.log(wasm);
-            onRuntimeInitialized.module = wasm;
+        throw onRuntimeInitialized.promise = getWasm().then(_ => {
             onRuntimeInitialized.status = 'resolve';
         }).catch(error => {
             console.error(error);
@@ -36,5 +34,3 @@ function useOnRuntimeInitializedReady() {
         })
     }
 }
-
-export function getWasm() { return onRuntimeInitialized.module; };

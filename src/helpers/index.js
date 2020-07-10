@@ -1,4 +1,4 @@
-import { getWasm } from './wasmReady';
+
 export async function getImageData(url) {
     const canvas2d = document.createElement('canvas');
     const ctx = canvas2d.getContext('2d');
@@ -36,13 +36,5 @@ export async function getBufferFromFile(file) {
         reader.readAsArrayBuffer(file);
     });
     
-}
-
-export function arrayToHeap(typedArray) {
-    const numBytes = typedArray.length * typedArray.BYTES_PER_ELEMENT;
-    const ptr = getWasm()._malloc(numBytes);
-    const heapBytes = getWasm().HEAPU8.subarray(ptr, ptr + numBytes);
-    heapBytes.set(typedArray);
-    return heapBytes;
 }
 
