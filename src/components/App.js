@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { getBufferFromFile, getBufferFromUrl } from '../helpers';
-import { Canvas } from '../lib';
+import { setNewSession, Layer } from '../lib';
 
 function App() {
   const canvasRef = useRef(null);
@@ -12,8 +12,11 @@ function App() {
   // const [ivOut, setOutput] = useState(null);
   useEffect(() => {
     (async function() {
-      const canvas = new Canvas(canvasRef.current);
-      await canvas.init();
+      await setNewSession(canvasRef.current);
+      const layer = new Layer();
+      const buffer = await getBufferFromUrl("https://cdn164.picsart.com/225975557060900.png"); 
+      layer.setInput(buffer)
+      layer.render();
     })();
     
     return () => {};
