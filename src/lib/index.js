@@ -9,17 +9,23 @@ export async function setNewSession(canvas = document.createElement('canvas')) {
     const session = new pi.GLSession(500);
     session.accessGraph(() => {
         const size = pi.graph.value.Point2i();
-        const sourceImage = pi.graph.value.Image_ARGB_8888();
+        const graphOutPut = pi.graph.value.Image_ARGB_8888();
         const background = pi.graph.value.Image_ARGB_8888();
         const view = pi.graph.undocumented.RXImageView({
-            value: sourceImage,
+            value: graphOutPut,
             background,
             size: size,
             name: 'ImageView'
         });
-        currentSessionIndex = sessions.push({ pi, session, view, size, sourceImage, background }) - 1;
+        currentSessionIndex = sessions.push({ pi, session, view, size, graphOutPut, background }) - 1;
     })
 }
+
+export function accessToCanvas(callback, numberOfCanvas) {
+    currentSessionIndex = numberOfCanvas;
+    callback();
+    currentSessionIndex = 0;
+} 
 
 export class Layer {
     constructor() {
@@ -37,7 +43,11 @@ export class Layer {
     }
     setInput(buffer) {
         this._session.accessGraph(() => {
-            this.input.value = this._pi.core.ImageARGB8.create(buffer);
+            const image  = this._pi.core.ImageARGB8.create(buffer);
+            this._pi.canvas.width = image.width;
+            this._pi.canvas.height = image.height;
+            this.input.value = image;
+            image.delete();
         });
     }
     get _session() {
@@ -52,9 +62,16 @@ export class Layer {
     get _size() {
         return sessions[currentSessionIndex].size;
     }
+    get _graphOutPut() {
+        return sessions[currentSessionIndex].graphOutPut;
+    }
+    set _graphOutPut(graphOutPut) {
+        return sessions[currentSessionIndex].graphOutPut = graphOutPut;
+    }
     render() {
         this._session.accessGraph(() => {
             console.log(this._view)
+            this._graphOutPut.value = this.output.output;
             this._session.runValue(this._view.output);
         });
     }
