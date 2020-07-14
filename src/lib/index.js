@@ -71,7 +71,7 @@ export class Layer {
     render() {
         this._session.accessGraph(() => {
             console.log(this._view)
-            this._graphOutPut.value = this.output.output;
+            this._graphOutPut = this.output;
             this._session.runValue(this._view.output);
         });
     }
