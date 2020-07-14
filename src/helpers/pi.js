@@ -999,8 +999,8 @@ function getValue(ptr, type, noSafe) {
 var wasmMemory;
 
 var wasmTable = new WebAssembly.Table({
- "initial": 8008,
- "maximum": 8008 + 0,
+ "initial": 9224,
+ "maximum": 9224 + 0,
  "element": "anyfunc"
 });
 
@@ -1396,7 +1396,7 @@ function updateGlobalBufferAndViews(buf) {
  Module["HEAPF64"] = HEAPF64 = new Float64Array(buf);
 }
 
-var STATIC_BASE = 1024, STACK_BASE = 6249920, STACKTOP = STACK_BASE, STACK_MAX = 1007040, DYNAMIC_BASE = 6249920, DYNAMICTOP_PTR = 1006096;
+var STATIC_BASE = 1024, STACK_BASE = 6304128, STACKTOP = STACK_BASE, STACK_MAX = 1061248, DYNAMIC_BASE = 6304128, DYNAMICTOP_PTR = 1060304;
 
 assert(STACK_BASE % 16 === 0, "stack must start aligned");
 
@@ -1878,12 +1878,12 @@ var tempDouble;
 var tempI64;
 
 var ASM_CONSTS = {
- 801715: function($0, $1) {
+ 855875: function($0, $1) {
   setTimeout(function() {
    _do_emscripten_dispatch_to_thread($0, $1);
   }, 0);
  },
- 801793: function() {
+ 855953: function() {
   throw "Canceled!";
  }
 };
@@ -2057,7 +2057,7 @@ var ERRNO_CODES = {
  ESTRPIPE: 135
 };
 
-var __main_thread_futex_wait_address = 1007024;
+var __main_thread_futex_wait_address = 1061232;
 
 function _emscripten_futex_wake(addr, count) {
  if (addr <= 0 || addr > GROWABLE_HEAP_I8().length || addr & 3 != 0 || count < 0) return -28;
@@ -2125,12 +2125,12 @@ var PThread = {
  },
  initMainThreadBlock: function() {
   assert(!ENVIRONMENT_IS_PTHREAD);
-  PThread.mainThreadBlock = 1006272;
+  PThread.mainThreadBlock = 1060480;
   for (var i = 0; i < 232 / 4; ++i) GROWABLE_HEAP_U32()[PThread.mainThreadBlock / 4 + i] = 0;
   GROWABLE_HEAP_I32()[PThread.mainThreadBlock + 12 >> 2] = PThread.mainThreadBlock;
   var headPtr = PThread.mainThreadBlock + 156;
   GROWABLE_HEAP_I32()[headPtr >> 2] = headPtr;
-  var tlsMemory = 1006512;
+  var tlsMemory = 1060720;
   for (var i = 0; i < 128; ++i) GROWABLE_HEAP_U32()[tlsMemory / 4 + i] = 0;
   Atomics.store(GROWABLE_HEAP_U32(), PThread.mainThreadBlock + 104 >> 2, tlsMemory);
   Atomics.store(GROWABLE_HEAP_U32(), PThread.mainThreadBlock + 40 >> 2, PThread.mainThreadBlock);
@@ -2500,7 +2500,7 @@ function ___cxa_find_matching_catch_2() {
  }
  var typeArray = Array.prototype.slice.call(arguments);
  var pointer = ___cxa_is_pointer_type(throwntype);
- var buffer = 1006256;
+ var buffer = 1060464;
  GROWABLE_HEAP_I32()[buffer >> 2] = thrown;
  thrown = buffer;
  for (var i = 0; i < typeArray.length; i++) {
@@ -2526,7 +2526,7 @@ function ___cxa_find_matching_catch_3() {
  }
  var typeArray = Array.prototype.slice.call(arguments);
  var pointer = ___cxa_is_pointer_type(throwntype);
- var buffer = 1006256;
+ var buffer = 1060464;
  GROWABLE_HEAP_I32()[buffer >> 2] = thrown;
  thrown = buffer;
  for (var i = 0; i < typeArray.length; i++) {
@@ -8185,6 +8185,7 @@ var GL = {
 };
 
 function _eglCreateContext(display, config, hmm, contextAttribs) {
+  console.log("asxs");
  if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(11, 1, display, config, hmm, contextAttribs);
  if (display != 62e3) {
   EGL.setErrorCode(12296);
@@ -8404,7 +8405,7 @@ function _emscripten_futex_wait(addr, val, timeout) {
 }
 
 function _emscripten_get_sbrk_ptr() {
- return 1006096;
+ return 1060304;
 }
 
 function _emscripten_is_main_browser_thread() {

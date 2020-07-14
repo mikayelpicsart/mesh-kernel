@@ -34,21 +34,36 @@ function App() {
         //     bottom: pi.graph.value.Float(-2.),
         //     top: pi.graph.value.Float(0.)
         // });
-        const transformMatrixData = {
-          sX: pi.graph.value.Float(1.), sY: pi.graph.value.Float(1.), sZ: pi.graph.value.Float(1.),  // scaling
-          tX: pi.graph.value.Float(0.), tY: pi.graph.value.Float(0.), tZ: pi.graph.value.Float(0.),  // rotation 
-          rX: pi.graph.value.Float(0.), rY: pi.graph.value.Float(0.), rZ: pi.graph.value.Float(0.),  // translation.
-        };
-        const transformMatrix = pi.graph.geometry.NewTransformMatrix(transformMatrixData);
+        // const transformMatrixData = {
+        //   sX: pi.graph.value.Float(1.), sY: pi.graph.value.Float(1.), sZ: pi.graph.value.Float(1.),  // scaling
+        //   tX: pi.graph.value.Float(0.), tY: pi.graph.value.Float(0.), tZ: pi.graph.value.Float(0.),  // rotation 
+        //   rX: pi.graph.value.Float(0.), rY: pi.graph.value.Float(0.), rZ: pi.graph.value.Float(0.),  // translation.
+        // };
+        const bufferFloat = new pi.core.BufferFloat([
+          2., 0., 0., 0.,
+          0., 1., 0., 0.,
+          0., 0., 1., 0.,
+          0., 0., 0., 1.
+        ]);
+        const bufferFloatProjection = new pi.core.BufferFloat([
+          0.347826087, 0.0, 0.0, 0.0,
+          0.0, 0.2637362637, 0.0, 0.0,
+          0.0, 0.0, 0.5, 0.0,
+          0.0, 0.0, 0.0, 1
+        ]);
+        const transformMatrix = pi.graph.value.Buffer_Float(bufferFloat);
+        const projectionMatrix = pi.graph.value.Buffer_Float(bufferFloatProjection);
+        bufferFloat.delete();
         const input2 = pi.graph.value.Image_ARGB_8888();
         // const logTransformMatrixData = pi.graph.basic_operations.Log(transformMatrix);
         // const logProjectionMatrix = pi.graph.basic_operations.Log(projectionMatrix);
         const mesh = pi.graph.rendering.Mesh({
           input: input1Copy,
           image: input2,
+          disable_culling: pi.graph.value.Int(0),
           // blend_mode: pi.graph.value.Int(1),
           model_matrix: transformMatrix,
-          // projection_matrix: logProjectionMatrix
+          projection_matrix:  projectionMatrix
         });
 
         const size = pi.graph.value.Point2i();
@@ -58,7 +73,7 @@ function App() {
           setSize(size)
           setInput1(input1);
           setInput2(input2);
-          setCord(transformMatrixData);
+          setCord(transformMatrix);
           setOutput(view);
         })
       });
@@ -66,12 +81,20 @@ function App() {
   }, [pi]);
   const handlerChange = useCallback((e) => {
     const { value, name, dataset: { start = 0 } = {} } = e.target;
-    const newValue = parseFloat(value) / 100 + parseFloat(start);
+    const newValue = parseFloat(value) / 30 + parseFloat(start);
+
     session.accessGraph(() => {
-      cord[name].value = Number(newValue);
+      const bufferFloat = new pi.core.BufferFloat([
+        1, 0., 0., 0.,
+        0., 1, 0, 0.,
+        0., 0., 1., 0.,
+        0.,newValue, 0., 1.
+      ]);
+      cord.value = bufferFloat;
+      bufferFloat.delete();
       session.runValue(ivOut.output);
     });
-  }, [cord, ivOut, session])
+  }, [cord, ivOut, pi.core.BufferFloat, session]);
 
   const handlerClick = useCallback(async () => {
     const buffer = await getBufferFromUrl("https://cdn164.picsart.com/225975557060900.png");
