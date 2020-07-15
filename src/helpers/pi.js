@@ -8185,7 +8185,6 @@ var GL = {
 };
 
 function _eglCreateContext(display, config, hmm, contextAttribs) {
-  console.log("asxs");
  if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(11, 1, display, config, hmm, contextAttribs);
  if (display != 62e3) {
   EGL.setErrorCode(12296);
