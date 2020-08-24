@@ -25,7 +25,7 @@ export function accessToCanvas(callback, numberOfCanvas) {
     currentSessionIndex = numberOfCanvas;
     callback();
     currentSessionIndex = 0;
-} 
+}
 
 export class Layer {
     constructor() {
@@ -43,12 +43,22 @@ export class Layer {
     }
     setInput(buffer) {
         this._session.accessGraph(() => {
-            const image  = this._pi.core.ImageARGB8.create(buffer);
+            const image = this._pi.core.ImageARGB8.create(buffer);
             this._pi.canvas.width = image.width;
             this._pi.canvas.height = image.height;
             this.input.value = image;
             image.delete();
         });
+    }
+    /**
+     * 
+     * @param {Layer} layer 
+     */
+    link(layer) {
+        this._session.accessGraph(() => {
+            this.image = layer.output
+        });
+
     }
     get _session() {
         return sessions[currentSessionIndex].session;
