@@ -329,21 +329,6 @@ if (!Object.getOwnPropertyDescriptor(Module["ready"], "_setThrew")) {
  });
 }
 
-if (!Object.getOwnPropertyDescriptor(Module["ready"], "_realloc")) {
- Object.defineProperty(Module["ready"], "_realloc", {
-  configurable: true,
-  get: function() {
-   abort("You are getting _realloc on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js");
-  }
- });
- Object.defineProperty(Module["ready"], "_realloc", {
-  configurable: true,
-  set: function() {
-   abort("You are setting _realloc on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js");
-  }
- });
-}
-
 if (!Object.getOwnPropertyDescriptor(Module["ready"], "_emscripten_main_thread_process_queued_calls")) {
  Object.defineProperty(Module["ready"], "_emscripten_main_thread_process_queued_calls", {
   configurable: true,
@@ -355,6 +340,21 @@ if (!Object.getOwnPropertyDescriptor(Module["ready"], "_emscripten_main_thread_p
   configurable: true,
   set: function() {
    abort("You are setting _emscripten_main_thread_process_queued_calls on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js");
+  }
+ });
+}
+
+if (!Object.getOwnPropertyDescriptor(Module["ready"], "_realloc")) {
+ Object.defineProperty(Module["ready"], "_realloc", {
+  configurable: true,
+  get: function() {
+   abort("You are getting _realloc on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js");
+  }
+ });
+ Object.defineProperty(Module["ready"], "_realloc", {
+  configurable: true,
+  set: function() {
+   abort("You are setting _realloc on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js");
   }
  });
 }
@@ -999,8 +999,8 @@ function getValue(ptr, type, noSafe) {
 var wasmMemory;
 
 var wasmTable = new WebAssembly.Table({
- "initial": 9224,
- "maximum": 9224 + 0,
+ "initial": 9350,
+ "maximum": 9350 + 0,
  "element": "anyfunc"
 });
 
@@ -1396,7 +1396,7 @@ function updateGlobalBufferAndViews(buf) {
  Module["HEAPF64"] = HEAPF64 = new Float64Array(buf);
 }
 
-var STATIC_BASE = 1024, STACK_BASE = 6304128, STACKTOP = STACK_BASE, STACK_MAX = 1061248, DYNAMIC_BASE = 6304128, DYNAMICTOP_PTR = 1060304;
+var STATIC_BASE = 1024, STACK_BASE = 6308864, STACKTOP = STACK_BASE, STACK_MAX = 1065984, DYNAMIC_BASE = 6308864, DYNAMICTOP_PTR = 1065040;
 
 assert(STACK_BASE % 16 === 0, "stack must start aligned");
 
@@ -1878,12 +1878,12 @@ var tempDouble;
 var tempI64;
 
 var ASM_CONSTS = {
- 855875: function($0, $1) {
+ 860387: function($0, $1) {
   setTimeout(function() {
    _do_emscripten_dispatch_to_thread($0, $1);
   }, 0);
  },
- 855953: function() {
+ 860465: function() {
   throw "Canceled!";
  }
 };
@@ -2057,7 +2057,7 @@ var ERRNO_CODES = {
  ESTRPIPE: 135
 };
 
-var __main_thread_futex_wait_address = 1061232;
+var __main_thread_futex_wait_address = 1065968;
 
 function _emscripten_futex_wake(addr, count) {
  if (addr <= 0 || addr > GROWABLE_HEAP_I8().length || addr & 3 != 0 || count < 0) return -28;
@@ -2125,12 +2125,12 @@ var PThread = {
  },
  initMainThreadBlock: function() {
   assert(!ENVIRONMENT_IS_PTHREAD);
-  PThread.mainThreadBlock = 1060480;
+  PThread.mainThreadBlock = 1065216;
   for (var i = 0; i < 232 / 4; ++i) GROWABLE_HEAP_U32()[PThread.mainThreadBlock / 4 + i] = 0;
   GROWABLE_HEAP_I32()[PThread.mainThreadBlock + 12 >> 2] = PThread.mainThreadBlock;
   var headPtr = PThread.mainThreadBlock + 156;
   GROWABLE_HEAP_I32()[headPtr >> 2] = headPtr;
-  var tlsMemory = 1060720;
+  var tlsMemory = 1065456;
   for (var i = 0; i < 128; ++i) GROWABLE_HEAP_U32()[tlsMemory / 4 + i] = 0;
   Atomics.store(GROWABLE_HEAP_U32(), PThread.mainThreadBlock + 104 >> 2, tlsMemory);
   Atomics.store(GROWABLE_HEAP_U32(), PThread.mainThreadBlock + 40 >> 2, PThread.mainThreadBlock);
@@ -2500,7 +2500,7 @@ function ___cxa_find_matching_catch_2() {
  }
  var typeArray = Array.prototype.slice.call(arguments);
  var pointer = ___cxa_is_pointer_type(throwntype);
- var buffer = 1060464;
+ var buffer = 1065200;
  GROWABLE_HEAP_I32()[buffer >> 2] = thrown;
  thrown = buffer;
  for (var i = 0; i < typeArray.length; i++) {
@@ -2526,7 +2526,7 @@ function ___cxa_find_matching_catch_3() {
  }
  var typeArray = Array.prototype.slice.call(arguments);
  var pointer = ___cxa_is_pointer_type(throwntype);
- var buffer = 1060464;
+ var buffer = 1065200;
  GROWABLE_HEAP_I32()[buffer >> 2] = thrown;
  thrown = buffer;
  for (var i = 0; i < typeArray.length; i++) {
@@ -8404,7 +8404,7 @@ function _emscripten_futex_wait(addr, val, timeout) {
 }
 
 function _emscripten_get_sbrk_ptr() {
- return 1060304;
+ return 1065040;
 }
 
 function _emscripten_is_main_browser_thread() {
@@ -10980,7 +10980,6 @@ var asmLibraryArg = {
  "glVertexAttribPointer": _glVertexAttribPointer,
  "glViewport": _glViewport,
  "initPthreadsJS": initPthreadsJS,
- "invoke_fi": invoke_fi,
  "invoke_i": invoke_i,
  "invoke_ii": invoke_ii,
  "invoke_iii": invoke_iii,
@@ -11377,12 +11376,6 @@ var dynCall_iiiiid = Module["dynCall_iiiiid"] = function() {
  return Module["asm"]["dynCall_iiiiid"].apply(null, arguments);
 };
 
-var dynCall_fi = Module["dynCall_fi"] = function() {
- assert(runtimeInitialized, "you need to wait for the runtime to be ready (e.g. wait for main() to be called)");
- assert(!runtimeExited, "the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)");
- return Module["asm"]["dynCall_fi"].apply(null, arguments);
-};
-
 var ___set_stack_limit = Module["___set_stack_limit"] = function() {
  assert(runtimeInitialized, "you need to wait for the runtime to be ready (e.g. wait for main() to be called)");
  assert(!runtimeExited, "the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)");
@@ -11507,6 +11500,12 @@ var dynCall_iiiif = Module["dynCall_iiiif"] = function() {
  assert(runtimeInitialized, "you need to wait for the runtime to be ready (e.g. wait for main() to be called)");
  assert(!runtimeExited, "the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)");
  return Module["asm"]["dynCall_iiiif"].apply(null, arguments);
+};
+
+var dynCall_fi = Module["dynCall_fi"] = function() {
+ assert(runtimeInitialized, "you need to wait for the runtime to be ready (e.g. wait for main() to be called)");
+ assert(!runtimeExited, "the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)");
+ return Module["asm"]["dynCall_fi"].apply(null, arguments);
 };
 
 var dynCall_iiji = Module["dynCall_iiji"] = function() {
@@ -11704,17 +11703,6 @@ function invoke_viiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9) {
  var sp = stackSave();
  try {
   dynCall_viiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9);
- } catch (e) {
-  stackRestore(sp);
-  if (e !== e + 0 && e !== "longjmp") throw e;
-  _setThrew(1, 0);
- }
-}
-
-function invoke_fi(index, a1) {
- var sp = stackSave();
- try {
-  return dynCall_fi(index, a1);
  } catch (e) {
   stackRestore(sp);
   if (e !== e + 0 && e !== "longjmp") throw e;
@@ -12286,9 +12274,7 @@ if (!Object.getOwnPropertyDescriptor(Module, "GLUT")) Module["GLUT"] = function(
  abort("'GLUT' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)");
 };
 
-if (!Object.getOwnPropertyDescriptor(Module, "EGL")) Module["EGL"] = function() {
- abort("'EGL' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)");
-};
+Module["EGL"] = EGL;
 
 if (!Object.getOwnPropertyDescriptor(Module, "GLFW_Window")) Module["GLFW_Window"] = function() {
  abort("'GLFW_Window' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)");
@@ -12920,49 +12906,122 @@ let library = null;
 const CPUKernel = 1 << 6;
 const GLKernel = 1 << 12;
 
-const _virtualValueNames = ['VirtualValueInt',
-                            'VirtualValueFloat',
-                            'VirtualValuePoint2i',
-                            'VirtualValuePoint2f',
-                            'VirtualValueARGB8',
-                            'VirtualValueRGB8',
-                            'VirtualValueBuffer8',
-                            'VirtualValueBufferInt',
-                            'VirtualValueBufferFloat',
-                            'VirtualValueBufferARGB8',
-                            'VirtualValueBufferRGB8',
-                            'VirtualValueBufferPoint2i',
-                            'VirtualValueBufferPoint2f',
-                            'VirtualValueImage8',
-                            'VirtualValueImageFloat',
-                            'VirtualValueImageARGB8',
-                            'VirtualValueImageRGB8',
-                            'VirtualValueImageLAB8',
-                            'VirtualValueImageAlphaLAB8',
-                            'VirtualValueString',
-                            'VirtualValueLABf'];
+const _virtualValueNames = [
+    'VirtualValueInt',
+    'VirtualValueFloat',
+    'VirtualValuePoint2i',
+    'VirtualValuePoint2f',
+    'VirtualValueARGB8',
+    'VirtualValueRGB8',
+    'VirtualValueBuffer8',
+    'VirtualValueBufferInt',
+    'VirtualValueBufferFloat',
+    'VirtualValueBufferARGB8',
+    'VirtualValueBufferRGB8',
+    'VirtualValueBufferPoint2i',
+    'VirtualValueBufferPoint2f',
+    'VirtualValueImage8',
+    'VirtualValueImageFloat',
+    'VirtualValueImageARGB8',
+    'VirtualValueImageRGB8',
+    'VirtualValueImageLAB8',
+    'VirtualValueImageAlphaLAB8',
+    'VirtualValueString',
+    'VirtualValueLABf',
+];
 
-const _valueNames = ['ValueInt',
-                     'ValueFloat',
-                     'ValuePoint2i',
-                     'ValuePoint2f',
-                     'ValueARGB8',
-                     'ValueRGB8',
-                     'ValueBuffer8',
-                     'ValueBufferInt',
-                     'ValueBufferFloat',
-                     'ValueBufferARGB8',
-                     'ValueBufferRGB8',
-                     'ValueBufferPoint2i',
-                     'ValueBufferPoint2f',
-                     'ValueImage8',
-                     'ValueImageFloat',
-                     'ValueImageARGB8',
-                     'ValueImageRGB8',
-                     'ValueImageLAB8',
-                     'ValueImageAlphaLAB8',
-                     'ValueString',
-                     'ValueLABf'];
+const _valueNames = [
+    'ValueInt',
+    'ValueFloat',
+    'ValuePoint2i',
+    'ValuePoint2f',
+    'ValueARGB8',
+    'ValueRGB8',
+    'ValueBuffer8',
+    'ValueBufferInt',
+    'ValueBufferFloat',
+    'ValueBufferARGB8',
+    'ValueBufferRGB8',
+    'ValueBufferPoint2i',
+    'ValueBufferPoint2f',
+    'ValueImage8',
+    'ValueImageFloat',
+    'ValueImageARGB8',
+    'ValueImageRGB8',
+    'ValueImageLAB8',
+    'ValueImageAlphaLAB8',
+    'ValueString',
+    'ValueLABf',
+];
+
+const _coreTypes = [
+    'Point2i',
+    'Point2f',
+    'PixelARGB8',
+    'PixelRGB8',
+    'Buffer8',
+    'BufferInt',
+    'BufferFloat',
+    'BufferARGB8',
+    'BufferRGB8',
+    'BufferPoint2i',
+    'BufferPoint2f',
+    'Image8',
+    'ImageRGB8',
+    'ImageARGB8',
+    'ImageRGBA8',
+];
+
+const _fxCore = [
+    'BuilderFactory',
+    'Builder',
+    'Effect',
+    'InputDescriptor',
+    'Input',
+    'OutputDescriptor',
+    'Output',
+    'InputType',
+    'OutputType',
+    'VectorBuilder',
+    'InputDescriptorMap',
+    'VectorOutputDescriptor',
+];
+
+const _fxParameters = [
+    'ParameterDescriptor',
+    'Parameter',
+    'BoolParameterDescriptor',
+    'BoolParameter',
+    'IntParameterDescriptor',
+    'IntParameter',
+    'FloatParameterDescriptor',
+    'FloatParameter',
+    'EnumParameterDescriptor',
+    'EnumParameter',
+    'ColorParameterDescriptor',
+    'ColorParameter',
+    'PointParameterDescriptor',
+    'PointParameter',
+    'ParameterType',
+    'VectorParameterDescriptor',
+    'VectorParameter',
+    'OverrideParameterMap',
+];
+
+const _fxResources = [
+    'ResourceDescriptor',
+    'Resource',
+    'FileResourceDescriptor',
+    'FileResource',
+    'FileContentResource',
+    'ImageResourceDescriptor',
+    'ImageResource',
+    'ImageBufferARGB8Resource',
+    'ImageBuffer8Resource',
+    'ResourceType',
+    'VectorResourcesDescriptor',
+    'VectorResource',
+]; 
 
 class FactoryMethod {
     constructor(kernelName) {
@@ -13338,15 +13397,29 @@ function tuneSessionClass() {
 }
 
 function tuneImageClass(imgClass) {
-    imgClass.create = function(fileBuffer) {
+    imgClass.create = function(fileBuffer, encrypted = false) {
         var bufferArray = new Uint8Array(fileBuffer);
         const numBytes = bufferArray.length * bufferArray.BYTES_PER_ELEMENT;
         const dataPtr = library._malloc(numBytes);
         const dataOnHeap = library.HEAPU8.subarray(dataPtr, dataPtr + numBytes);
         dataOnHeap.set(bufferArray);
-        const img = new imgClass(dataOnHeap.byteOffset, bufferArray.length);
+        const img = new imgClass(dataOnHeap.byteOffset, bufferArray.length, encrypted);
         library._free(dataPtr);
         return img;
+    }
+    // TODO optimize this function trying to remove unneccessary copying.
+    imgClass.encodeToPNG = function(image) {
+        const vectorData = library.encodeToPNG(image);
+        const length = vectorData.size();
+        var bufferArray = new Uint8Array(length);
+        const dataPtr = library._malloc(length);
+        const dataOnHeap = library.HEAPU8.subarray(dataPtr, dataPtr + length);
+        for (let i = 0; i < dataOnHeap.length; ++i) {
+          dataOnHeap[i] = vectorData.get(i);
+        }
+        bufferArray.set(dataOnHeap);
+        library._free(dataPtr);
+        return bufferArray;
     }
 }
 
@@ -13363,23 +13436,7 @@ function tuneBufferClass(bufferClass, vectorClass) {
 }
 
 function moveClasses() {
-    [
-        'Point2i',
-        'Point2f',
-        'PixelARGB8',
-        'PixelRGB8',
-        'Buffer8',
-        'BufferInt',
-        'BufferFloat',
-        'BufferARGB8',
-        'BufferRGB8',
-        'BufferPoint2i',
-        'BufferPoint2f',
-        'Image8',
-        'ImageRGB8',
-        'ImageARGB8',
-        'ImageRGBA8'
-    ].forEach(name => {
+    _coreTypes.forEach(name => {
         library.core[name] = library[name];
         delete library[name];
     });
@@ -13389,20 +13446,43 @@ function moveClasses() {
         delete library[vv];
     });
 
-
     _valueNames.forEach(v => {
          library.graph.values[v] = library[v];
          delete library[v];
     });
 }
 
+function moveEffectClasses() {
+    _fxCore.forEach(name => {
+        library.fx.core[name] = library[name];
+        delete library[name];
+    });
+
+    _fxParameters.forEach(name => {
+        library.fx.parameters[name] = library[name];
+        delete library[name];
+    });
+
+    _fxResources.forEach(name => {
+        library.fx.resources[name] = library[name];
+        delete library[name];
+    }); 
+}
+
 async function initializeLibrary() {
     library = await createPIModule();
+
+    library.EGL.contextAttributes.premultipliedAlpha = false;
 
     library.core = {};
     library.graph = {};
     library.graph.values = {};
+    library.fx = {};
+    library.fx.core = {};
+    library.fx.parameters = {};
+    library.fx.resources = {};
     moveClasses();
+    moveEffectClasses();
 
     addValueMaps();
     tuneSessionClass();
