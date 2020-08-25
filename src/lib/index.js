@@ -1,4 +1,5 @@
 import { getLibrary } from '../helpers/pi';
+import { identityMatrix4x4, zeroMatrix4x4, multiplyMatrix4X4 } from '../helpers/matrix';
 
 const sessions = [];
 let currentSessionIndex = 0;
@@ -36,9 +37,9 @@ export class Layer {
             'translationY': 0
         }
        
-        this._modelMatrix = [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ];
+        this._modelMatrix = identityMatrix4x4;
         this.width = 0; this.height = 0;
-        const projectionMatrix = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+        const projectionMatrix = zeroMatrix4x4;
         const bufferProjectionMatrix = new this._pi.core.BufferFloat(projectionMatrix);
         const bufferModelMatrix = new this._pi.core.BufferFloat(this._modelMatrix);
         this._session.accessGraph(() => {
@@ -86,6 +87,7 @@ export class Layer {
     }
     updateModelMatrix() {
         
+        multiplyMatrix4X4(,identityMatrix4x4)
         // this._session.accessGraph(() => {
         //     const modelMatrix = []
         //     this._modelMatrix
