@@ -1396,7 +1396,7 @@ function updateGlobalBufferAndViews(buf) {
  Module["HEAPF64"] = HEAPF64 = new Float64Array(buf);
 }
 
-var STATIC_BASE = 1024, STACK_BASE = 6308864, STACKTOP = STACK_BASE, STACK_MAX = 1065984, DYNAMIC_BASE = 6308864, DYNAMICTOP_PTR = 1065040;
+var STATIC_BASE = 1024, STACK_BASE = 6308880, STACKTOP = STACK_BASE, STACK_MAX = 1066e3, DYNAMIC_BASE = 6308880, DYNAMICTOP_PTR = 1065056;
 
 assert(STACK_BASE % 16 === 0, "stack must start aligned");
 
@@ -1878,12 +1878,12 @@ var tempDouble;
 var tempI64;
 
 var ASM_CONSTS = {
- 860387: function($0, $1) {
+ 860403: function($0, $1) {
   setTimeout(function() {
    _do_emscripten_dispatch_to_thread($0, $1);
   }, 0);
  },
- 860465: function() {
+ 860481: function() {
   throw "Canceled!";
  }
 };
@@ -2057,7 +2057,7 @@ var ERRNO_CODES = {
  ESTRPIPE: 135
 };
 
-var __main_thread_futex_wait_address = 1065968;
+var __main_thread_futex_wait_address = 1065984;
 
 function _emscripten_futex_wake(addr, count) {
  if (addr <= 0 || addr > GROWABLE_HEAP_I8().length || addr & 3 != 0 || count < 0) return -28;
@@ -2125,12 +2125,12 @@ var PThread = {
  },
  initMainThreadBlock: function() {
   assert(!ENVIRONMENT_IS_PTHREAD);
-  PThread.mainThreadBlock = 1065216;
+  PThread.mainThreadBlock = 1065232;
   for (var i = 0; i < 232 / 4; ++i) GROWABLE_HEAP_U32()[PThread.mainThreadBlock / 4 + i] = 0;
   GROWABLE_HEAP_I32()[PThread.mainThreadBlock + 12 >> 2] = PThread.mainThreadBlock;
   var headPtr = PThread.mainThreadBlock + 156;
   GROWABLE_HEAP_I32()[headPtr >> 2] = headPtr;
-  var tlsMemory = 1065456;
+  var tlsMemory = 1065472;
   for (var i = 0; i < 128; ++i) GROWABLE_HEAP_U32()[tlsMemory / 4 + i] = 0;
   Atomics.store(GROWABLE_HEAP_U32(), PThread.mainThreadBlock + 104 >> 2, tlsMemory);
   Atomics.store(GROWABLE_HEAP_U32(), PThread.mainThreadBlock + 40 >> 2, PThread.mainThreadBlock);
@@ -2500,7 +2500,7 @@ function ___cxa_find_matching_catch_2() {
  }
  var typeArray = Array.prototype.slice.call(arguments);
  var pointer = ___cxa_is_pointer_type(throwntype);
- var buffer = 1065200;
+ var buffer = 1065216;
  GROWABLE_HEAP_I32()[buffer >> 2] = thrown;
  thrown = buffer;
  for (var i = 0; i < typeArray.length; i++) {
@@ -2526,7 +2526,7 @@ function ___cxa_find_matching_catch_3() {
  }
  var typeArray = Array.prototype.slice.call(arguments);
  var pointer = ___cxa_is_pointer_type(throwntype);
- var buffer = 1065200;
+ var buffer = 1065216;
  GROWABLE_HEAP_I32()[buffer >> 2] = thrown;
  thrown = buffer;
  for (var i = 0; i < typeArray.length; i++) {
@@ -8404,7 +8404,7 @@ function _emscripten_futex_wait(addr, val, timeout) {
 }
 
 function _emscripten_get_sbrk_ptr() {
- return 1065040;
+ return 1065056;
 }
 
 function _emscripten_is_main_browser_thread() {

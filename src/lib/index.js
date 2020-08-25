@@ -8,16 +8,13 @@ export async function setNewSession(canvas = document.createElement('canvas')) {
     pi.canvas = canvas;
     const session = new pi.GLSession(500);
     session.accessGraph(() => {
-        const size = pi.graph.value.Point2i();
-        const graphOutPut = pi.graph.value.Image_ARGB_8888();
-        const background = pi.graph.value.Image_ARGB_8888();
         const view = pi.graph.undocumented.RXImageView({
-            value: graphOutPut,
-            background,
-            size: size,
+            value: pi.graph.value.Image_ARGB_8888(),
+            background: pi.graph.value.Image_ARGB_8888(),
+            size: pi.graph.value.Point2i(),
             name: 'ImageView'
         });
-        currentSessionIndex = sessions.push({ pi, session, view, size, graphOutPut, background }) - 1;
+        currentSessionIndex = sessions.push({ pi, session, view }) - 1;
     })
 }
 
@@ -29,57 +26,77 @@ export function accessToCanvas(callback, numberOfCanvas) {
 
 export class Layer {
     constructor() {
-        this._projectionMatrix = [
-            1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1,
-        ];
-        this._modelMatrix = [
-            0.5, 0, 0, 0,
-            0, 0.5, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1,
-        ];
-        this._bufferProjectionMatrix = new this._pi.core.BufferFloat(this._projectionMatrix);
-        this._bufferModelMatrix = new this._pi.core.BufferFloat(this._modelMatrix);
+        this._model = {
+            'scaleX': 1,
+            'scaleY': 1,
+            'rotateX': 0,
+            'rotateY': 0,
+            'rotateZ': 0,
+            'translationX': 0,
+            'translationY': 0
+        }
+       
+        this._modelMatrix = [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ];
+        this.width = 0; this.height = 0;
+        const projectionMatrix = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+        const bufferProjectionMatrix = new this._pi.core.BufferFloat(projectionMatrix);
+        const bufferModelMatrix = new this._pi.core.BufferFloat(this._modelMatrix);
         this._session.accessGraph(() => {
-            
             this.input = this._pi.graph.value.Image_ARGB_8888();
-            this.image = this._pi.graph.value.Image_ARGB_8888();
-            // this._projectionMatrix = this._pi.graph.geometry.MakeOrthoProjectionMatrix({
-            //     left: this._pi.graph.value.Float(0.),
-            //     right: this._pi.graph.value.Float(0.),
-            //     bottom: this._pi.graph.value.Float(0.),
-            //     top: this._pi.graph.value.Float(0.)
-            // });
+            this._modelMatrixValue = this._pi.graph.value.Buffer_Float(bufferModelMatrix);
             this.output = this._pi.graph.rendering.Mesh({
                 input: this._pi.graph.basic_operations.Copy({ input: this.input }),
-                image: this.image,
-                //blend_mode: this._pi.graph.value.Int(1),
-                model_matrix: this._pi.graph.value.Buffer_Float(this._bufferModelMatrix),
-                projection_matrix: this._pi.graph.value.Buffer_Float(this._bufferProjectionMatrix)
+                image: this._pi.graph.value.Image_ARGB_8888(),
+                model_matrix: this._modelMatrixValue,
+                projection_matrix: this._pi.graph.value.Buffer_Float(bufferProjectionMatrix)
             });
         });
     }
     setInput(buffer) {
         this._session.accessGraph(() => {
             const image = this._pi.core.ImageARGB8.create(buffer);
-            this._pi.canvas.width = image.width;
-            this._pi.canvas.height = image.height;
-            this._size.value = this._pi.graph.value.Point2i();
+            this.width = image.width;
+            this.height = image.height;
             this.input.value = image;
-            //image.delete();
+            image.delete();
         });
     }
     /**
      * @param {Layer} layer 
      */
-    // link(layer) {
-    //     this._session.accessGraph(() => {
-    //         this.image = layer.output
-    //     });
-    // }
+    add(layer) {
+        this._session.accessGraph(() => {
+            const projectionMatrix = this._pi.graph.geometry.MakeOrthoProjectionMatrix({
+                left: this._pi.graph.value.Float(-parseFloat((this.width - layer.width) / 2)),
+                right: this._pi.graph.value.Float(parseFloat((this.width - layer.width) / 2)),
+                bottom: this._pi.graph.value.Float(-parseFloat((this.height - layer.height) / 2)),
+                top: this._pi.graph.value.Float(parseFloat((this.height - layer.height) / 2))
+            });
+            const vertices = [
+                -layer.width/2, -layer.height/2, 0.0,
+                layer.width/2,  -layer.height/2, 0.0,
+                -layer.width/2, layer.height/2, 0.0,
+                layer.width/2, layer.height/2, 0.0 
+            ]
+            const verticesBuffer = new this._pi.core.BufferFloat(vertices)
+            this.output.node().setInput('projection_matrix', projectionMatrix);
+            this.output.node().setInput('image', layer.output);
+            this.output.node().setInput('verticies', this._pi.graph.value.Buffer_Float(verticesBuffer));
+        });
+    }
+    updateModelMatrix() {
+        
+        // this._session.accessGraph(() => {
+        //     const modelMatrix = []
+        //     this._modelMatrix
+        // });
+    }
+    get scaleX () {
+        return this._model['scaleX'];
+    }
+    get scaleY () {
+        return this._model['scaleX'];
+    }
     get _session() {
         return sessions[currentSessionIndex].session;
     }
@@ -89,19 +106,12 @@ export class Layer {
     get _pi() {
         return sessions[currentSessionIndex].pi;
     }
-    get _size() {
-        return sessions[currentSessionIndex].size;
-    }
-    get _graphOutPut() {
-        return sessions[currentSessionIndex].graphOutPut;
-    }
-    set _graphOutPut(graphOutPut) {
-        return sessions[currentSessionIndex].graphOutPut = graphOutPut;
-    }
     render() {
-        this._session.accessGraph(() => {        
+        this._pi.canvas.width = this.width;
+        this._pi.canvas.height = this.height;
+        this._session.accessGraph(() => {
             this._view.output.node().setInput('value', this.output);
-            console.log(this._view.output);
+            this._view.output.node().setInput('size', this._pi.graph.basic_operations.ShapeOf(this.output).size);
             this._session.runValue(this._view.output);
         });
     }
