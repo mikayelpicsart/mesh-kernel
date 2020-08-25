@@ -14,7 +14,7 @@ function App() {
     (async function () {
       await setNewSession(canvasRef.current);
       const layer = new Layer();
-      const buffer = await getBufferFromUrl("https://cdn164.picsart.com/225975557060900.png");
+      const buffer = await getBufferFromUrl("/3T2uJg.png");
       layer.setInput(buffer);
       layer.render();
 
