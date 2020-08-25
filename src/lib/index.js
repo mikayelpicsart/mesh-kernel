@@ -1,5 +1,5 @@
 import { getLibrary } from '../helpers/pi';
-import { identityMatrix4x4, zeroMatrix4x4, multiplyMatrix4X4 } from '../helpers/matrix';
+import { identityMatrix4x4, zeroMatrix4x4, multiplyMatrix4X4, generateMatrix, Transpose4x4 } from '../helpers/matrix';
 
 const sessions = [];
 let currentSessionIndex = 0;
@@ -36,10 +36,9 @@ export class Layer {
             'translationX': 0,
             'translationY': 0
         }
-       
-        this._modelMatrix = identityMatrix4x4;
+        this._modelMatrix = [...identityMatrix4x4];
         this.width = 0; this.height = 0;
-        const projectionMatrix = zeroMatrix4x4;
+        const projectionMatrix = [...zeroMatrix4x4];
         const bufferProjectionMatrix = new this._pi.core.BufferFloat(projectionMatrix);
         const bufferModelMatrix = new this._pi.core.BufferFloat(this._modelMatrix);
         this._session.accessGraph(() => {
@@ -85,19 +84,38 @@ export class Layer {
             this.output.node().setInput('verticies', this._pi.graph.value.Buffer_Float(verticesBuffer));
         });
     }
-    updateModelMatrix() {
-        
-        multiplyMatrix4X4(,identityMatrix4x4)
-        // this._session.accessGraph(() => {
-        //     const modelMatrix = []
-        //     this._modelMatrix
-        // });
-    }
+    // updateModelMatrix() {
+    //     const scaleMatrix = generateMatrix('scale', this._model);
+    //     const rotateMatrix = generateMatrix('rotate', this._model);
+    //     const translationMatrix = generateMatrix('translation', this._model);
+    //     const newModelMatrix = multiplyMatrix4X4(translationMatrix,multiplyMatrix4X4(rotateMatrix,scaleMatrix));
+    //     this._modelMatrix = newModelMatrix;
+    //     this._session.accessGraph(() => {
+    //         this._modelMatrixValue.value = new this._pi.core.BufferFloat(Transpose4x4(this._modelMatrix));
+    //     });
+    //     console.log(this._modelMatrix);
+    // }
     get scaleX () {
         return this._model['scaleX'];
     }
     get scaleY () {
+        return this._model['scaleY'];
+    }
+    set scaleX (value) {
+        this._model['scaleX'] = value;
+        this.updateModelMatrix();
         return this._model['scaleX'];
+    }
+    // eslint-disable-next-line no-dupe-class-members
+    scaleX (value) {
+        this._model['scaleX'] = value;
+        this.updateModelMatrix();
+        return this._model['scaleX'];
+    }
+    set scaleY (value) {
+        this._model['scaleY'] = value;
+        this.updateModelMatrix();
+        return this._model['scaleY'];
     }
     get _session() {
         return sessions[currentSessionIndex].session;

@@ -17,6 +17,7 @@ function App() {
       ])
       layer.setInput(buffers[0]);
       layer1.setInput(buffers[1]);
+      //layer1.scaleX(0.3);
       layer2.setInput(buffers[2]);
       layer1.add(layer2)
       layer.add(layer1);
