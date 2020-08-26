@@ -12,15 +12,16 @@ function App() {
       const layer2 = new Layer();
       const buffers = await Promise.all([
         getBufferFromUrl("/3T2uJg.png"),
-        getBufferFromUrl("https://cdn151.picsart.com/225977472012900.png"),
+        getBufferFromUrl("/test.png"),
         getBufferFromUrl("https://cdn.shoplightspeed.com/shops/626275/files/18687427/600x600x1/stickers-northwest-sticker-ok.jpg")
       ])
       layer.setInput(buffers[0]);
       layer1.setInput(buffers[1]);
-      //layer1.scaleX(0.3);
+      layer1.scaleX(0.3);
       layer2.setInput(buffers[2]);
-      layer1.add(layer2)
-      layer.add(layer1);
+      layer1.add(layer2, { top: 50, left: 50 });
+      // layer.scaleY(0.2);
+      layer.add(layer1, { top: 50, left: 50 });
       layer.render();
 
     })();
@@ -40,7 +41,7 @@ function App() {
           <div><input type='range' min='0' max='100' name='rZ' onChange={handlerChange} /> <span> Test </span> </div>
           <div> <button type='button' onClick={handlerClick} > Add Sticker </button></div>
         </div> */}
-        <div><canvas ref={canvasRef} /></div>
+        <div><canvas ref={canvasRef} style={{ border: '1px solid black' }} /></div>
       </div>
     </div>
   );
