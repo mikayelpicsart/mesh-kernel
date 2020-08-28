@@ -2,28 +2,60 @@ import React, { useEffect, useRef } from 'react';
 import { getBufferFromUrl } from '../helpers';
 import { setNewSession, Layer } from '../lib';
 
+const arrayStickers = [
+  'https://pastatic.picsart.com/24223727131055538105.png?to=min&r=100',
+  'https://pastatic.picsart.com/19309331335674000898.png?to=min&r=100',
+  'https://cdn140.picsart.com/335970175091211.png?to=min&r=100',
+  'https://cdn141.picsart.com/333097131030211.png?to=min&r=100',
+  'https://cdn131.picsart.com/333172623011211.png?to=min&r=100',
+  'https://cdn176.picsart.com/225974407017900.png?to=min&r=100',
+  'https://cdn140.picsart.com/335015997031211.png?to=min&r=100',
+  'https://cdn156.picsart.com/225974407023900.png?to=min&r=100',
+  'https://pastatic.picsart.com/75980729942641134313.png?to=min&r=100',
+  'https://pastatic.picsart.com/03313376547977788417.png?to=min&r=100',
+  'https://cdn131.picsart.com/332918605060211.png?to=min&r=100',
+  'https://cdn131.picsart.com/333210081042211.png?to=min&r=100',
+  'https://pastatic.picsart.com/58129437085591952634.png?to=min&r=100',
+  'https://cdn131.picsart.com/333005104094211.png?to=min&r=100',
+  'https://pastatic.picsart.com/24223727131055538105.png?to=min&r=100',
+  'https://pastatic.picsart.com/19309331335674000898.png?to=min&r=100',
+  'https://cdn140.picsart.com/335970175091211.png?to=min&r=100',
+  'https://cdn141.picsart.com/333097131030211.png?to=min&r=100',
+  'https://cdn131.picsart.com/333172623011211.png?to=min&r=100',
+  'https://cdn176.picsart.com/225974407017900.png?to=min&r=100',
+  'https://cdn140.picsart.com/335015997031211.png?to=min&r=100',
+  'https://cdn156.picsart.com/225974407023900.png?to=min&r=100',
+  'https://pastatic.picsart.com/75980729942641134313.png?to=min&r=100',
+  'https://pastatic.picsart.com/03313376547977788417.png?to=min&r=100',
+  'https://cdn131.picsart.com/332918605060211.png?to=min&r=100',
+  'https://cdn131.picsart.com/333210081042211.png?to=min&r=100',
+  'https://pastatic.picsart.com/58129437085591952634.png?to=min&r=100',
+  'https://cdn131.picsart.com/333005104094211.png?to=min&r=100',
+  'https://cdn131.picsart.com/333210081042211.png?to=min&r=100',
+  'https://pastatic.picsart.com/58129437085591952634.png?to=min&r=100',
+  'https://cdn131.picsart.com/333005104094211.png?to=min&r=100'
+]
+
 function App() {
   const canvasRef = useRef(null);
   useEffect(() => {
     (async function () {
       await setNewSession(canvasRef.current);
       const layer = new Layer();
-      const layer1 = new Layer();
-      const layer2 = new Layer();
-      const buffers = await Promise.all([
-        getBufferFromUrl("/3T2uJg.png"),
-        getBufferFromUrl("/test.png"),
-        getBufferFromUrl("https://cdn.shoplightspeed.com/shops/626275/files/18687427/600x600x1/stickers-northwest-sticker-ok.jpg")
-      ])
-      layer.setInput(buffers[0]);
-      layer1.setInput(buffers[1]);
-      layer1.scaleX(0.3);
-      layer2.setInput(buffers[2]);
-      layer1.add(layer2, { top: 50, left: 50 });
-      // layer.scaleY(0.2);
-      layer.add(layer1, { top: 50, left: 50 });
+      const buffer = await getBufferFromUrl("/3T2uJg.png");
+      layer.setInput(buffer);
+      const buffers = await Promise.all( arrayStickers.map(item => getBufferFromUrl(item)));
+      const layers = buffers.map(buffer => ({ buffer, layer: new Layer() }))
+        .map(({layer, buffer }) => { layer.setInput(buffer); return layer } );
+      layers.forEach((layerItem, index, arr) => {
+        layer.add(layerItem, { top: index * 3, left: index * 3 }, arr.length - index);
+      })
+      const layertest = new Layer();
+      const buffertest = await getBufferFromUrl("https://cdn131.picsart.com/332918605060211.png?to=min&r=200");
+      layertest.setInput(buffertest);
+      layer.add(layertest, { top: 12 * 5, left: 12 * 5 }, 700);
       layer.render();
-
+      console.log(layer);
     })();
 
     return () => { };

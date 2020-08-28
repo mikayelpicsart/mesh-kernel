@@ -1,5 +1,6 @@
 import { getLibrary } from '../helpers/pi';
 import { identityMatrix4x4, zeroMatrix4x4, multiplyMatrix4X4, generateMatrix, Transpose4x4 } from '../helpers/matrix';
+import { generateUniqueId, getAddedIndexInSortArray } from '../helpers';
 
 const sessions = [];
 let currentSessionIndex = 0;
@@ -27,6 +28,7 @@ export function accessToCanvas(callback, numberOfCanvas) {
 
 export class Layer {
     constructor() {
+        this.id = generateUniqueId();
         this._model = {
             'scaleX': 1,
             'scaleY': 1,
@@ -36,7 +38,8 @@ export class Layer {
             'translationX': 0,
             'translationY': 0
         }
-        this._modelMatrix = [...identityMatrix4x4];
+        this.addedLayers = [];
+        this._modelMatrix = [...identityMatrix4x4]; // this.model <=> in matrix 
         this.width = 0; this.height = 0;
         const projectionMatrix = [...zeroMatrix4x4];
         const bufferProjectionMatrix = new this._pi.core.BufferFloat(projectionMatrix);
@@ -64,14 +67,52 @@ export class Layer {
     /**
      * @param {Layer} layer 
      */
-    add(layer, { top = 0, left = 0 } = {}) {
+    _addLayerInSortedArray(layer, settings, zIndex) { // it will call only when this.addedLayers.length > 0
+        // defaultLeft is this.output
+        // defaultRight id this.input
+        let meshPointer = null;
+        console.log(this.addedLayers.map(item => item.zIndex));
+        const array = [
+            { zIndex: Infinity, meshPointer: this.output },
+            ...this.addedLayers.map(item => ({zIndex: item.zIndex, meshPointer: item.meshPointer})),
+            { zIndex: -Infinity, meshPointer: this.input }
+        ];
+        const addedIndex = getAddedIndexInSortArray(item => item.zIndex, array, zIndex);
+
+        this._session.accessGraph(() => {
+            console.log(array);
+            meshPointer = this._pi.graph.rendering.Mesh({
+                //addedIndex exist because defaultLeft is this.output and defaultRight id this.input added
+                input:  this._pi.graph.basic_operations.Copy({ input: array[addedIndex].meshPointer }),
+                image: this._pi.graph.value.Image_ARGB_8888(),
+            });
+            if(addedIndex === 1) {
+                this.output = meshPointer;
+            } else {
+                array[addedIndex - 1].meshPointer.node().setInput('input',  meshPointer)
+            }
+        });
+        this.addedLayers.splice(addedIndex - 1, 0, { layer, settings, zIndex, meshPointer })
+        return meshPointer;
+    }
+    add(layer, settings = {}, zIndex = 0 /*(this.addedLayers[0]?.zIndex || -1) + 1*/ )  {
+        let meshPointer = null;
+        if(this.addedLayers.length === 0) {
+            meshPointer = this.output;
+            this.addedLayers.push({ layer, settings, zIndex, meshPointer })
+        } else {
+            meshPointer = this._addLayerInSortedArray(layer, settings, zIndex);
+        }
+        this._addLayerToGivenMesh(layer, settings, meshPointer);
+        return layer.id;
+    }
+    _addLayerToGivenMesh(layer, { top = 0, left = 0 } = {}, meshPointer) {
         let cords = [
             (left / 100) * this.width,
             (1 - left / 100) * this.width,
             (top / 100) * this.height,
             (1 - top / 100) * this.height,
         ];
-        console.log(cords, layer.width, layer.height, this.width, this.height);
         this._session.accessGraph(() => {
             const projectionMatrix = this._pi.graph.geometry.MakeOrthoProjectionMatrix({
                 left: this._pi.graph.value.Float(-parseFloat(cords[0])),
@@ -86,11 +127,9 @@ export class Layer {
                 layer.width / 2, layer.height / 2, 0.0
             ]
             const verticesBuffer = new this._pi.core.BufferFloat(vertices);
-            console.log(vertices);
-            const projectionMatrixLog = this._pi.graph.basic_operations.Log(projectionMatrix);
-            this.output.node().setInput('projection_matrix', projectionMatrixLog);
-            this.output.node().setInput('image', layer.output);
-            this.output.node().setInput('verticies', this._pi.graph.value.Buffer_Float(verticesBuffer));
+            meshPointer.node().setInput('projection_matrix', projectionMatrix);
+            meshPointer.node().setInput('image', layer.output);
+            meshPointer.node().setInput('verticies', this._pi.graph.value.Buffer_Float(verticesBuffer));
         });
     }
     updateModelMatrix() {

@@ -1,4 +1,3 @@
-
 export async function getImageData(url) {
     const canvas2d = document.createElement('canvas');
     const ctx = canvas2d.getContext('2d');
@@ -38,3 +37,29 @@ export async function getBufferFromFile(file) {
     
 }
 
+export const generateUniqueId = (function() {
+    let count = 0;
+    return function () { return Date.now() + count++ }
+})()
+
+export function getAddedIndexInSortArray(callback, array = [], number) {
+    let left = 0;
+    let right = array.length - 1;
+    let m = 0;
+    while (left <= right) { 
+        m = Math.floor(left + (right - left) / 2); 
+        if (callback(array[m]) === number) {
+            while(callback(array[m]) === number){ // go left to last equal element 
+                m--;
+            }
+            return m + 1;
+        }
+        if (callback(array[m]) > number) {
+            left = m + 1;
+        } else {
+            right = m - 1; 
+        }     
+    }
+    if(callback(array[m]) > number) m++;
+    return m; 
+}
