@@ -17,6 +17,11 @@ export async function setNewSession(canvas = document.createElement('canvas')) {
             name: 'ImageView'
         });
         currentSessionIndex = sessions.push({ pi, session, view }) - 1;
+        function render() {
+            session.runValue(view.output);
+            requestAnimationFrame(render);
+        }
+        requestAnimationFrame(render);
     })
 }
 
@@ -67,11 +72,10 @@ export class Layer {
     /**
      * @param {Layer} layer 
      */
-    _addLayerInSortedArray(layer, settings, zIndex) { // it will call only when this.addedLayers.length > 0
+    _addLayerInSortedArray(layer, settings, zIndex = 0) { // it will call only when this.addedLayers.length > 0
         // defaultLeft is this.output
         // defaultRight id this.input
         let meshPointer = null;
-        console.log(this.addedLayers.map(item => item.zIndex));
         const array = [
             { zIndex: Infinity, meshPointer: this.output },
             ...this.addedLayers.map(item => ({zIndex: item.zIndex, meshPointer: item.meshPointer})),
@@ -80,7 +84,6 @@ export class Layer {
         const addedIndex = getAddedIndexInSortArray(item => item.zIndex, array, zIndex);
 
         this._session.accessGraph(() => {
-            console.log(array);
             meshPointer = this._pi.graph.rendering.Mesh({
                 //addedIndex exist because defaultLeft is this.output and defaultRight id this.input added
                 input:  this._pi.graph.basic_operations.Copy({ input: array[addedIndex].meshPointer }),
@@ -188,5 +191,6 @@ export class Layer {
             this._view.output.node().setInput('size', this._pi.graph.basic_operations.ShapeOf(this.output).size);
             this._session.runValue(this._view.output);
         });
+        console.log(this._pi) ;
     }
 }

@@ -48,7 +48,10 @@ function App() {
       const layers = buffers.map(buffer => ({ buffer, layer: new Layer() }))
         .map(({layer, buffer }) => { layer.setInput(buffer); return layer } );
       layers.forEach((layerItem, index, arr) => {
-        layer.add(layerItem, { top: index * 3, left: index * 3 }, arr.length - index);
+       
+          layer.add(layerItem, { top: ((index % 19) * 5.26 + 2.63), left: Math.floor(index / 19) * 4 + 2 });
+         
+        
       })
       const layertest = new Layer();
       const buffertest = await getBufferFromUrl("https://cdn131.picsart.com/332918605060211.png?to=min&r=200");
