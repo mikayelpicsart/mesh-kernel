@@ -344,6 +344,51 @@ if (!Object.getOwnPropertyDescriptor(Module["ready"], "_emscripten_main_thread_p
  });
 }
 
+if (!Object.getOwnPropertyDescriptor(Module["ready"], "_htonl")) {
+ Object.defineProperty(Module["ready"], "_htonl", {
+  configurable: true,
+  get: function() {
+   abort("You are getting _htonl on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js");
+  }
+ });
+ Object.defineProperty(Module["ready"], "_htonl", {
+  configurable: true,
+  set: function() {
+   abort("You are setting _htonl on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js");
+  }
+ });
+}
+
+if (!Object.getOwnPropertyDescriptor(Module["ready"], "_htons")) {
+ Object.defineProperty(Module["ready"], "_htons", {
+  configurable: true,
+  get: function() {
+   abort("You are getting _htons on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js");
+  }
+ });
+ Object.defineProperty(Module["ready"], "_htons", {
+  configurable: true,
+  set: function() {
+   abort("You are setting _htons on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js");
+  }
+ });
+}
+
+if (!Object.getOwnPropertyDescriptor(Module["ready"], "_ntohs")) {
+ Object.defineProperty(Module["ready"], "_ntohs", {
+  configurable: true,
+  get: function() {
+   abort("You are getting _ntohs on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js");
+  }
+ });
+ Object.defineProperty(Module["ready"], "_ntohs", {
+  configurable: true,
+  set: function() {
+   abort("You are setting _ntohs on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js");
+  }
+ });
+}
+
 if (!Object.getOwnPropertyDescriptor(Module["ready"], "_realloc")) {
  Object.defineProperty(Module["ready"], "_realloc", {
   configurable: true,
@@ -395,6 +440,8 @@ Module["locateFile"] = function(path, scriptDirectory) {
  }
  return scriptDirectory + path;
 };
+
+Module["mainScriptUrlOrBlob"] = location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "") + "/" + "pi.js";
 
 var moduleOverrides = {};
 
@@ -999,8 +1046,8 @@ function getValue(ptr, type, noSafe) {
 var wasmMemory;
 
 var wasmTable = new WebAssembly.Table({
- "initial": 9350,
- "maximum": 9350 + 0,
+ "initial": 9652,
+ "maximum": 9652 + 0,
  "element": "anyfunc"
 });
 
@@ -1396,7 +1443,7 @@ function updateGlobalBufferAndViews(buf) {
  Module["HEAPF64"] = HEAPF64 = new Float64Array(buf);
 }
 
-var STATIC_BASE = 1024, STACK_BASE = 6308880, STACKTOP = STACK_BASE, STACK_MAX = 1066e3, DYNAMIC_BASE = 6308880, DYNAMICTOP_PTR = 1065056;
+var STATIC_BASE = 1024, STACK_BASE = 6332880, STACKTOP = STACK_BASE, STACK_MAX = 109e4, DYNAMIC_BASE = 6332880, DYNAMICTOP_PTR = 1089056;
 
 assert(STACK_BASE % 16 === 0, "stack must start aligned");
 
@@ -1545,6 +1592,7 @@ function initRuntime() {
  runtimeInitialized = true;
  if (!Module["noFSInit"] && !FS.init.initialized) FS.init();
  TTY.init();
+ SOCKFS.root = FS.mount(SOCKFS, {}, null);
  callRuntimeCallbacks(__ATINIT__);
 }
 
@@ -1824,7 +1872,12 @@ function createWasm() {
   Module["asm"] = exports;
   wasmModule = module;
   if (!ENVIRONMENT_IS_PTHREAD) {
-   removeRunDependency("wasm-instantiate");
+   var numWorkersToLoad = PThread.unusedWorkers.length;
+   PThread.unusedWorkers.forEach(function(w) {
+    PThread.loadWasmModuleToWorker(w, function() {
+     if (!--numWorkersToLoad) removeRunDependency("wasm-instantiate");
+    });
+   });
   }
  }
  if (!ENVIRONMENT_IS_PTHREAD) {
@@ -1878,12 +1931,12 @@ var tempDouble;
 var tempI64;
 
 var ASM_CONSTS = {
- 860403: function($0, $1) {
+ 883467: function($0, $1) {
   setTimeout(function() {
    _do_emscripten_dispatch_to_thread($0, $1);
   }, 0);
  },
- 860481: function() {
+ 883545: function() {
   throw "Canceled!";
  }
 };
@@ -2057,7 +2110,7 @@ var ERRNO_CODES = {
  ESTRPIPE: 135
 };
 
-var __main_thread_futex_wait_address = 1065984;
+var __main_thread_futex_wait_address = 1089984;
 
 function _emscripten_futex_wake(addr, count) {
  if (addr <= 0 || addr > GROWABLE_HEAP_I8().length || addr & 3 != 0 || count < 0) return -28;
@@ -2125,12 +2178,16 @@ var PThread = {
  },
  initMainThreadBlock: function() {
   assert(!ENVIRONMENT_IS_PTHREAD);
-  PThread.mainThreadBlock = 1065232;
+  var pthreadPoolSize = 12;
+  for (var i = 0; i < pthreadPoolSize; ++i) {
+   PThread.allocateUnusedWorker();
+  }
+  PThread.mainThreadBlock = 1089232;
   for (var i = 0; i < 232 / 4; ++i) GROWABLE_HEAP_U32()[PThread.mainThreadBlock / 4 + i] = 0;
   GROWABLE_HEAP_I32()[PThread.mainThreadBlock + 12 >> 2] = PThread.mainThreadBlock;
   var headPtr = PThread.mainThreadBlock + 156;
   GROWABLE_HEAP_I32()[headPtr >> 2] = headPtr;
-  var tlsMemory = 1065472;
+  var tlsMemory = 1089472;
   for (var i = 0; i < 128; ++i) GROWABLE_HEAP_U32()[tlsMemory / 4 + i] = 0;
   Atomics.store(GROWABLE_HEAP_U32(), PThread.mainThreadBlock + 104 >> 2, tlsMemory);
   Atomics.store(GROWABLE_HEAP_U32(), PThread.mainThreadBlock + 40 >> 2, PThread.mainThreadBlock);
@@ -2451,6 +2508,12 @@ function ___cxa_begin_catch(ptr) {
  return ptr;
 }
 
+function ___cxa_current_primary_exception() {
+ var ret = ___exception_caught[___exception_caught.length - 1] || 0;
+ if (ret) ___exception_addRef(___exception_deAdjust(ret));
+ return ret;
+}
+
 function ___cxa_free_exception(ptr) {
  try {
   return _free(ptr);
@@ -2500,7 +2563,7 @@ function ___cxa_find_matching_catch_2() {
  }
  var typeArray = Array.prototype.slice.call(arguments);
  var pointer = ___cxa_is_pointer_type(throwntype);
- var buffer = 1065216;
+ var buffer = 1089216;
  GROWABLE_HEAP_I32()[buffer >> 2] = thrown;
  thrown = buffer;
  for (var i = 0; i < typeArray.length; i++) {
@@ -2526,7 +2589,7 @@ function ___cxa_find_matching_catch_3() {
  }
  var typeArray = Array.prototype.slice.call(arguments);
  var pointer = ___cxa_is_pointer_type(throwntype);
- var buffer = 1065216;
+ var buffer = 1089216;
  GROWABLE_HEAP_I32()[buffer >> 2] = thrown;
  thrown = buffer;
  for (var i = 0; i < typeArray.length; i++) {
@@ -2604,6 +2667,60 @@ function ___resumeException(ptr) {
   ___exception_last = ptr;
  }
  throw ptr;
+}
+
+function ___sys__newselect(nfds, readfds, writefds, exceptfds, timeout) {
+ assert(nfds <= 64, "nfds must be less than or equal to 64");
+ assert(!exceptfds, "exceptfds not supported");
+ var total = 0;
+ var srcReadLow = readfds ? GROWABLE_HEAP_I32()[readfds >> 2] : 0, srcReadHigh = readfds ? GROWABLE_HEAP_I32()[readfds + 4 >> 2] : 0;
+ var srcWriteLow = writefds ? GROWABLE_HEAP_I32()[writefds >> 2] : 0, srcWriteHigh = writefds ? GROWABLE_HEAP_I32()[writefds + 4 >> 2] : 0;
+ var srcExceptLow = exceptfds ? GROWABLE_HEAP_I32()[exceptfds >> 2] : 0, srcExceptHigh = exceptfds ? GROWABLE_HEAP_I32()[exceptfds + 4 >> 2] : 0;
+ var dstReadLow = 0, dstReadHigh = 0;
+ var dstWriteLow = 0, dstWriteHigh = 0;
+ var dstExceptLow = 0, dstExceptHigh = 0;
+ var allLow = (readfds ? GROWABLE_HEAP_I32()[readfds >> 2] : 0) | (writefds ? GROWABLE_HEAP_I32()[writefds >> 2] : 0) | (exceptfds ? GROWABLE_HEAP_I32()[exceptfds >> 2] : 0);
+ var allHigh = (readfds ? GROWABLE_HEAP_I32()[readfds + 4 >> 2] : 0) | (writefds ? GROWABLE_HEAP_I32()[writefds + 4 >> 2] : 0) | (exceptfds ? GROWABLE_HEAP_I32()[exceptfds + 4 >> 2] : 0);
+ var check = function(fd, low, high, val) {
+  return fd < 32 ? low & val : high & val;
+ };
+ for (var fd = 0; fd < nfds; fd++) {
+  var mask = 1 << fd % 32;
+  if (!check(fd, allLow, allHigh, mask)) {
+   continue;
+  }
+  var stream = FS.getStream(fd);
+  if (!stream) throw new FS.ErrnoError(8);
+  var flags = SYSCALLS.DEFAULT_POLLMASK;
+  if (stream.stream_ops.poll) {
+   flags = stream.stream_ops.poll(stream);
+  }
+  if (flags & 1 && check(fd, srcReadLow, srcReadHigh, mask)) {
+   fd < 32 ? dstReadLow = dstReadLow | mask : dstReadHigh = dstReadHigh | mask;
+   total++;
+  }
+  if (flags & 4 && check(fd, srcWriteLow, srcWriteHigh, mask)) {
+   fd < 32 ? dstWriteLow = dstWriteLow | mask : dstWriteHigh = dstWriteHigh | mask;
+   total++;
+  }
+  if (flags & 2 && check(fd, srcExceptLow, srcExceptHigh, mask)) {
+   fd < 32 ? dstExceptLow = dstExceptLow | mask : dstExceptHigh = dstExceptHigh | mask;
+   total++;
+  }
+ }
+ if (readfds) {
+  GROWABLE_HEAP_I32()[readfds >> 2] = dstReadLow;
+  GROWABLE_HEAP_I32()[readfds + 4 >> 2] = dstReadHigh;
+ }
+ if (writefds) {
+  GROWABLE_HEAP_I32()[writefds >> 2] = dstWriteLow;
+  GROWABLE_HEAP_I32()[writefds + 4 >> 2] = dstWriteHigh;
+ }
+ if (exceptfds) {
+  GROWABLE_HEAP_I32()[exceptfds >> 2] = dstExceptLow;
+  GROWABLE_HEAP_I32()[exceptfds + 4 >> 2] = dstExceptHigh;
+ }
+ return total;
 }
 
 var PATH = {
@@ -5329,8 +5446,19 @@ function ___sys_open(path, flags, varargs) {
  }
 }
 
+function ___sys_read(fd, buf, count) {
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(6, 1, fd, buf, count);
+ try {
+  var stream = SYSCALLS.getStreamFromFD(fd);
+  return FS.read(stream, GROWABLE_HEAP_I8(), buf, count);
+ } catch (e) {
+  if (typeof FS === "undefined" || !(e instanceof FS.ErrnoError)) abort(e);
+  return -e.errno;
+ }
+}
+
 function ___sys_rmdir(path) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(6, 1, path);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(7, 1, path);
  try {
   path = SYSCALLS.getStr(path);
   FS.rmdir(path);
@@ -5341,8 +5469,879 @@ function ___sys_rmdir(path) {
  }
 }
 
+var SOCKFS = {
+ mount: function(mount) {
+  Module["websocket"] = Module["websocket"] && "object" === typeof Module["websocket"] ? Module["websocket"] : {};
+  Module["websocket"]._callbacks = {};
+  Module["websocket"]["on"] = function(event, callback) {
+   if ("function" === typeof callback) {
+    this._callbacks[event] = callback;
+   }
+   return this;
+  };
+  Module["websocket"].emit = function(event, param) {
+   if ("function" === typeof this._callbacks[event]) {
+    this._callbacks[event].call(this, param);
+   }
+  };
+  return FS.createNode(null, "/", 16384 | 511, 0);
+ },
+ createSocket: function(family, type, protocol) {
+  var streaming = type == 1;
+  if (protocol) {
+   assert(streaming == (protocol == 6));
+  }
+  var sock = {
+   family: family,
+   type: type,
+   protocol: protocol,
+   server: null,
+   error: null,
+   peers: {},
+   pending: [],
+   recv_queue: [],
+   sock_ops: SOCKFS.websocket_sock_ops
+  };
+  var name = SOCKFS.nextname();
+  var node = FS.createNode(SOCKFS.root, name, 49152, 0);
+  node.sock = sock;
+  var stream = FS.createStream({
+   path: name,
+   node: node,
+   flags: FS.modeStringToFlags("r+"),
+   seekable: false,
+   stream_ops: SOCKFS.stream_ops
+  });
+  sock.stream = stream;
+  return sock;
+ },
+ getSocket: function(fd) {
+  var stream = FS.getStream(fd);
+  if (!stream || !FS.isSocket(stream.node.mode)) {
+   return null;
+  }
+  return stream.node.sock;
+ },
+ stream_ops: {
+  poll: function(stream) {
+   var sock = stream.node.sock;
+   return sock.sock_ops.poll(sock);
+  },
+  ioctl: function(stream, request, varargs) {
+   var sock = stream.node.sock;
+   return sock.sock_ops.ioctl(sock, request, varargs);
+  },
+  read: function(stream, buffer, offset, length, position) {
+   var sock = stream.node.sock;
+   var msg = sock.sock_ops.recvmsg(sock, length);
+   if (!msg) {
+    return 0;
+   }
+   buffer.set(msg.buffer, offset);
+   return msg.buffer.length;
+  },
+  write: function(stream, buffer, offset, length, position) {
+   var sock = stream.node.sock;
+   return sock.sock_ops.sendmsg(sock, buffer, offset, length);
+  },
+  close: function(stream) {
+   var sock = stream.node.sock;
+   sock.sock_ops.close(sock);
+  }
+ },
+ nextname: function() {
+  if (!SOCKFS.nextname.current) {
+   SOCKFS.nextname.current = 0;
+  }
+  return "socket[" + SOCKFS.nextname.current++ + "]";
+ },
+ websocket_sock_ops: {
+  createPeer: function(sock, addr, port) {
+   var ws;
+   if (typeof addr === "object") {
+    ws = addr;
+    addr = null;
+    port = null;
+   }
+   if (ws) {
+    if (ws._socket) {
+     addr = ws._socket.remoteAddress;
+     port = ws._socket.remotePort;
+    } else {
+     var result = /ws[s]?:\/\/([^:]+):(\d+)/.exec(ws.url);
+     if (!result) {
+      throw new Error("WebSocket URL must be in the format ws(s)://address:port");
+     }
+     addr = result[1];
+     port = parseInt(result[2], 10);
+    }
+   } else {
+    try {
+     var runtimeConfig = Module["websocket"] && "object" === typeof Module["websocket"];
+     var url = "ws:#".replace("#", "//");
+     if (runtimeConfig) {
+      if ("string" === typeof Module["websocket"]["url"]) {
+       url = Module["websocket"]["url"];
+      }
+     }
+     if (url === "ws://" || url === "wss://") {
+      var parts = addr.split("/");
+      url = url + parts[0] + ":" + port + "/" + parts.slice(1).join("/");
+     }
+     var subProtocols = "binary";
+     if (runtimeConfig) {
+      if ("string" === typeof Module["websocket"]["subprotocol"]) {
+       subProtocols = Module["websocket"]["subprotocol"];
+      }
+     }
+     var opts = undefined;
+     if (subProtocols !== "null") {
+      subProtocols = subProtocols.replace(/^ +| +$/g, "").split(/ *, */);
+      opts = ENVIRONMENT_IS_NODE ? {
+       "protocol": subProtocols.toString()
+      } : subProtocols;
+     }
+     if (runtimeConfig && null === Module["websocket"]["subprotocol"]) {
+      subProtocols = "null";
+      opts = undefined;
+     }
+     var WebSocketConstructor;
+     {
+      WebSocketConstructor = WebSocket;
+     }
+     ws = new WebSocketConstructor(url, opts);
+     ws.binaryType = "arraybuffer";
+    } catch (e) {
+     throw new FS.ErrnoError(ERRNO_CODES.EHOSTUNREACH);
+    }
+   }
+   var peer = {
+    addr: addr,
+    port: port,
+    socket: ws,
+    dgram_send_queue: []
+   };
+   SOCKFS.websocket_sock_ops.addPeer(sock, peer);
+   SOCKFS.websocket_sock_ops.handlePeerEvents(sock, peer);
+   if (sock.type === 2 && typeof sock.sport !== "undefined") {
+    peer.dgram_send_queue.push(new Uint8Array([ 255, 255, 255, 255, "p".charCodeAt(0), "o".charCodeAt(0), "r".charCodeAt(0), "t".charCodeAt(0), (sock.sport & 65280) >> 8, sock.sport & 255 ]));
+   }
+   return peer;
+  },
+  getPeer: function(sock, addr, port) {
+   return sock.peers[addr + ":" + port];
+  },
+  addPeer: function(sock, peer) {
+   sock.peers[peer.addr + ":" + peer.port] = peer;
+  },
+  removePeer: function(sock, peer) {
+   delete sock.peers[peer.addr + ":" + peer.port];
+  },
+  handlePeerEvents: function(sock, peer) {
+   var first = true;
+   var handleOpen = function() {
+    Module["websocket"].emit("open", sock.stream.fd);
+    try {
+     var queued = peer.dgram_send_queue.shift();
+     while (queued) {
+      peer.socket.send(queued);
+      queued = peer.dgram_send_queue.shift();
+     }
+    } catch (e) {
+     peer.socket.close();
+    }
+   };
+   function handleMessage(data) {
+    if (typeof data === "string") {
+     var encoder = new TextEncoder();
+     data = encoder.encode(data);
+    } else {
+     assert(data.byteLength !== undefined);
+     if (data.byteLength == 0) {
+      return;
+     } else {
+      data = new Uint8Array(data);
+     }
+    }
+    var wasfirst = first;
+    first = false;
+    if (wasfirst && data.length === 10 && data[0] === 255 && data[1] === 255 && data[2] === 255 && data[3] === 255 && data[4] === "p".charCodeAt(0) && data[5] === "o".charCodeAt(0) && data[6] === "r".charCodeAt(0) && data[7] === "t".charCodeAt(0)) {
+     var newport = data[8] << 8 | data[9];
+     SOCKFS.websocket_sock_ops.removePeer(sock, peer);
+     peer.port = newport;
+     SOCKFS.websocket_sock_ops.addPeer(sock, peer);
+     return;
+    }
+    sock.recv_queue.push({
+     addr: peer.addr,
+     port: peer.port,
+     data: data
+    });
+    Module["websocket"].emit("message", sock.stream.fd);
+   }
+   if (ENVIRONMENT_IS_NODE) {
+    peer.socket.on("open", handleOpen);
+    peer.socket.on("message", function(data, flags) {
+     if (!flags.binary) {
+      return;
+     }
+     handleMessage(new Uint8Array(data).buffer);
+    });
+    peer.socket.on("close", function() {
+     Module["websocket"].emit("close", sock.stream.fd);
+    });
+    peer.socket.on("error", function(error) {
+     sock.error = ERRNO_CODES.ECONNREFUSED;
+     Module["websocket"].emit("error", [ sock.stream.fd, sock.error, "ECONNREFUSED: Connection refused" ]);
+    });
+   } else {
+    peer.socket.onopen = handleOpen;
+    peer.socket.onclose = function() {
+     Module["websocket"].emit("close", sock.stream.fd);
+    };
+    peer.socket.onmessage = function peer_socket_onmessage(event) {
+     handleMessage(event.data);
+    };
+    peer.socket.onerror = function(error) {
+     sock.error = ERRNO_CODES.ECONNREFUSED;
+     Module["websocket"].emit("error", [ sock.stream.fd, sock.error, "ECONNREFUSED: Connection refused" ]);
+    };
+   }
+  },
+  poll: function(sock) {
+   if (sock.type === 1 && sock.server) {
+    return sock.pending.length ? 64 | 1 : 0;
+   }
+   var mask = 0;
+   var dest = sock.type === 1 ? SOCKFS.websocket_sock_ops.getPeer(sock, sock.daddr, sock.dport) : null;
+   if (sock.recv_queue.length || !dest || dest && dest.socket.readyState === dest.socket.CLOSING || dest && dest.socket.readyState === dest.socket.CLOSED) {
+    mask |= 64 | 1;
+   }
+   if (!dest || dest && dest.socket.readyState === dest.socket.OPEN) {
+    mask |= 4;
+   }
+   if (dest && dest.socket.readyState === dest.socket.CLOSING || dest && dest.socket.readyState === dest.socket.CLOSED) {
+    mask |= 16;
+   }
+   return mask;
+  },
+  ioctl: function(sock, request, arg) {
+   switch (request) {
+   case 21531:
+    var bytes = 0;
+    if (sock.recv_queue.length) {
+     bytes = sock.recv_queue[0].data.length;
+    }
+    GROWABLE_HEAP_I32()[arg >> 2] = bytes;
+    return 0;
+
+   default:
+    return ERRNO_CODES.EINVAL;
+   }
+  },
+  close: function(sock) {
+   if (sock.server) {
+    try {
+     sock.server.close();
+    } catch (e) {}
+    sock.server = null;
+   }
+   var peers = Object.keys(sock.peers);
+   for (var i = 0; i < peers.length; i++) {
+    var peer = sock.peers[peers[i]];
+    try {
+     peer.socket.close();
+    } catch (e) {}
+    SOCKFS.websocket_sock_ops.removePeer(sock, peer);
+   }
+   return 0;
+  },
+  bind: function(sock, addr, port) {
+   if (typeof sock.saddr !== "undefined" || typeof sock.sport !== "undefined") {
+    throw new FS.ErrnoError(ERRNO_CODES.EINVAL);
+   }
+   sock.saddr = addr;
+   sock.sport = port;
+   if (sock.type === 2) {
+    if (sock.server) {
+     sock.server.close();
+     sock.server = null;
+    }
+    try {
+     sock.sock_ops.listen(sock, 0);
+    } catch (e) {
+     if (!(e instanceof FS.ErrnoError)) throw e;
+     if (e.errno !== ERRNO_CODES.EOPNOTSUPP) throw e;
+    }
+   }
+  },
+  connect: function(sock, addr, port) {
+   if (sock.server) {
+    throw new FS.ErrnoError(ERRNO_CODES.EOPNOTSUPP);
+   }
+   if (typeof sock.daddr !== "undefined" && typeof sock.dport !== "undefined") {
+    var dest = SOCKFS.websocket_sock_ops.getPeer(sock, sock.daddr, sock.dport);
+    if (dest) {
+     if (dest.socket.readyState === dest.socket.CONNECTING) {
+      throw new FS.ErrnoError(ERRNO_CODES.EALREADY);
+     } else {
+      throw new FS.ErrnoError(ERRNO_CODES.EISCONN);
+     }
+    }
+   }
+   var peer = SOCKFS.websocket_sock_ops.createPeer(sock, addr, port);
+   sock.daddr = peer.addr;
+   sock.dport = peer.port;
+   throw new FS.ErrnoError(ERRNO_CODES.EINPROGRESS);
+  },
+  listen: function(sock, backlog) {
+   if (!ENVIRONMENT_IS_NODE) {
+    throw new FS.ErrnoError(ERRNO_CODES.EOPNOTSUPP);
+   }
+  },
+  accept: function(listensock) {
+   if (!listensock.server) {
+    throw new FS.ErrnoError(ERRNO_CODES.EINVAL);
+   }
+   var newsock = listensock.pending.shift();
+   newsock.stream.flags = listensock.stream.flags;
+   return newsock;
+  },
+  getname: function(sock, peer) {
+   var addr, port;
+   if (peer) {
+    if (sock.daddr === undefined || sock.dport === undefined) {
+     throw new FS.ErrnoError(ERRNO_CODES.ENOTCONN);
+    }
+    addr = sock.daddr;
+    port = sock.dport;
+   } else {
+    addr = sock.saddr || 0;
+    port = sock.sport || 0;
+   }
+   return {
+    addr: addr,
+    port: port
+   };
+  },
+  sendmsg: function(sock, buffer, offset, length, addr, port) {
+   if (sock.type === 2) {
+    if (addr === undefined || port === undefined) {
+     addr = sock.daddr;
+     port = sock.dport;
+    }
+    if (addr === undefined || port === undefined) {
+     throw new FS.ErrnoError(ERRNO_CODES.EDESTADDRREQ);
+    }
+   } else {
+    addr = sock.daddr;
+    port = sock.dport;
+   }
+   var dest = SOCKFS.websocket_sock_ops.getPeer(sock, addr, port);
+   if (sock.type === 1) {
+    if (!dest || dest.socket.readyState === dest.socket.CLOSING || dest.socket.readyState === dest.socket.CLOSED) {
+     throw new FS.ErrnoError(ERRNO_CODES.ENOTCONN);
+    } else if (dest.socket.readyState === dest.socket.CONNECTING) {
+     throw new FS.ErrnoError(ERRNO_CODES.EAGAIN);
+    }
+   }
+   if (ArrayBuffer.isView(buffer)) {
+    offset += buffer.byteOffset;
+    buffer = buffer.buffer;
+   }
+   var data;
+   if (buffer instanceof SharedArrayBuffer) {
+    data = new Uint8Array(new Uint8Array(buffer.slice(offset, offset + length))).buffer;
+   } else {
+    data = buffer.slice(offset, offset + length);
+   }
+   if (sock.type === 2) {
+    if (!dest || dest.socket.readyState !== dest.socket.OPEN) {
+     if (!dest || dest.socket.readyState === dest.socket.CLOSING || dest.socket.readyState === dest.socket.CLOSED) {
+      dest = SOCKFS.websocket_sock_ops.createPeer(sock, addr, port);
+     }
+     dest.dgram_send_queue.push(data);
+     return length;
+    }
+   }
+   try {
+    dest.socket.send(data);
+    return length;
+   } catch (e) {
+    throw new FS.ErrnoError(ERRNO_CODES.EINVAL);
+   }
+  },
+  recvmsg: function(sock, length) {
+   if (sock.type === 1 && sock.server) {
+    throw new FS.ErrnoError(ERRNO_CODES.ENOTCONN);
+   }
+   var queued = sock.recv_queue.shift();
+   if (!queued) {
+    if (sock.type === 1) {
+     var dest = SOCKFS.websocket_sock_ops.getPeer(sock, sock.daddr, sock.dport);
+     if (!dest) {
+      throw new FS.ErrnoError(ERRNO_CODES.ENOTCONN);
+     } else if (dest.socket.readyState === dest.socket.CLOSING || dest.socket.readyState === dest.socket.CLOSED) {
+      return null;
+     } else {
+      throw new FS.ErrnoError(ERRNO_CODES.EAGAIN);
+     }
+    } else {
+     throw new FS.ErrnoError(ERRNO_CODES.EAGAIN);
+    }
+   }
+   var queuedLength = queued.data.byteLength || queued.data.length;
+   var queuedOffset = queued.data.byteOffset || 0;
+   var queuedBuffer = queued.data.buffer || queued.data;
+   var bytesRead = Math.min(length, queuedLength);
+   var res = {
+    buffer: new Uint8Array(queuedBuffer, queuedOffset, bytesRead),
+    addr: queued.addr,
+    port: queued.port
+   };
+   if (sock.type === 1 && bytesRead < queuedLength) {
+    var bytesRemaining = queuedLength - bytesRead;
+    queued.data = new Uint8Array(queuedBuffer, queuedOffset + bytesRead, bytesRemaining);
+    sock.recv_queue.unshift(queued);
+   }
+   return res;
+  }
+ }
+};
+
+function __inet_pton4_raw(str) {
+ var b = str.split(".");
+ for (var i = 0; i < 4; i++) {
+  var tmp = Number(b[i]);
+  if (isNaN(tmp)) return null;
+  b[i] = tmp;
+ }
+ return (b[0] | b[1] << 8 | b[2] << 16 | b[3] << 24) >>> 0;
+}
+
+function jstoi_q(str) {
+ return parseInt(str);
+}
+
+function __inet_pton6_raw(str) {
+ var words;
+ var w, offset, z, i;
+ var valid6regx = /^((?=.*::)(?!.*::.+::)(::)?([\dA-F]{1,4}:(:|\b)|){5}|([\dA-F]{1,4}:){6})((([\dA-F]{1,4}((?!\3)::|:\b|$))|(?!\2\3)){2}|(((2[0-4]|1\d|[1-9])?\d|25[0-5])\.?\b){4})$/i;
+ var parts = [];
+ if (!valid6regx.test(str)) {
+  return null;
+ }
+ if (str === "::") {
+  return [ 0, 0, 0, 0, 0, 0, 0, 0 ];
+ }
+ if (str.indexOf("::") === 0) {
+  str = str.replace("::", "Z:");
+ } else {
+  str = str.replace("::", ":Z:");
+ }
+ if (str.indexOf(".") > 0) {
+  str = str.replace(new RegExp("[.]", "g"), ":");
+  words = str.split(":");
+  words[words.length - 4] = jstoi_q(words[words.length - 4]) + jstoi_q(words[words.length - 3]) * 256;
+  words[words.length - 3] = jstoi_q(words[words.length - 2]) + jstoi_q(words[words.length - 1]) * 256;
+  words = words.slice(0, words.length - 2);
+ } else {
+  words = str.split(":");
+ }
+ offset = 0;
+ z = 0;
+ for (w = 0; w < words.length; w++) {
+  if (typeof words[w] === "string") {
+   if (words[w] === "Z") {
+    for (z = 0; z < 8 - words.length + 1; z++) {
+     parts[w + z] = 0;
+    }
+    offset = z - 1;
+   } else {
+    parts[w + offset] = _htons(parseInt(words[w], 16));
+   }
+  } else {
+   parts[w + offset] = words[w];
+  }
+ }
+ return [ parts[1] << 16 | parts[0], parts[3] << 16 | parts[2], parts[5] << 16 | parts[4], parts[7] << 16 | parts[6] ];
+}
+
+var DNS = {
+ address_map: {
+  id: 1,
+  addrs: {},
+  names: {}
+ },
+ lookup_name: function(name) {
+  var res = __inet_pton4_raw(name);
+  if (res !== null) {
+   return name;
+  }
+  res = __inet_pton6_raw(name);
+  if (res !== null) {
+   return name;
+  }
+  var addr;
+  if (DNS.address_map.addrs[name]) {
+   addr = DNS.address_map.addrs[name];
+  } else {
+   var id = DNS.address_map.id++;
+   assert(id < 65535, "exceeded max address mappings of 65535");
+   addr = "172.29." + (id & 255) + "." + (id & 65280);
+   DNS.address_map.names[addr] = name;
+   DNS.address_map.addrs[name] = addr;
+  }
+  return addr;
+ },
+ lookup_addr: function(addr) {
+  if (DNS.address_map.names[addr]) {
+   return DNS.address_map.names[addr];
+  }
+  return null;
+ }
+};
+
+var Sockets = {
+ BUFFER_SIZE: 10240,
+ MAX_BUFFER_SIZE: 10485760,
+ nextFd: 1,
+ fds: {},
+ nextport: 1,
+ maxport: 65535,
+ peer: null,
+ connections: {},
+ portmap: {},
+ localAddr: 4261412874,
+ addrPool: [ 33554442, 50331658, 67108874, 83886090, 100663306, 117440522, 134217738, 150994954, 167772170, 184549386, 201326602, 218103818, 234881034 ]
+};
+
+function __inet_ntop4_raw(addr) {
+ return (addr & 255) + "." + (addr >> 8 & 255) + "." + (addr >> 16 & 255) + "." + (addr >> 24 & 255);
+}
+
+function __inet_ntop6_raw(ints) {
+ var str = "";
+ var word = 0;
+ var longest = 0;
+ var lastzero = 0;
+ var zstart = 0;
+ var len = 0;
+ var i = 0;
+ var parts = [ ints[0] & 65535, ints[0] >> 16, ints[1] & 65535, ints[1] >> 16, ints[2] & 65535, ints[2] >> 16, ints[3] & 65535, ints[3] >> 16 ];
+ var hasipv4 = true;
+ var v4part = "";
+ for (i = 0; i < 5; i++) {
+  if (parts[i] !== 0) {
+   hasipv4 = false;
+   break;
+  }
+ }
+ if (hasipv4) {
+  v4part = __inet_ntop4_raw(parts[6] | parts[7] << 16);
+  if (parts[5] === -1) {
+   str = "::ffff:";
+   str += v4part;
+   return str;
+  }
+  if (parts[5] === 0) {
+   str = "::";
+   if (v4part === "0.0.0.0") v4part = "";
+   if (v4part === "0.0.0.1") v4part = "1";
+   str += v4part;
+   return str;
+  }
+ }
+ for (word = 0; word < 8; word++) {
+  if (parts[word] === 0) {
+   if (word - lastzero > 1) {
+    len = 0;
+   }
+   lastzero = word;
+   len++;
+  }
+  if (len > longest) {
+   longest = len;
+   zstart = word - longest + 1;
+  }
+ }
+ for (word = 0; word < 8; word++) {
+  if (longest > 1) {
+   if (parts[word] === 0 && word >= zstart && word < zstart + longest) {
+    if (word === zstart) {
+     str += ":";
+     if (zstart === 0) str += ":";
+    }
+    continue;
+   }
+  }
+  str += Number(_ntohs(parts[word] & 65535)).toString(16);
+  str += word < 7 ? ":" : "";
+ }
+ return str;
+}
+
+function __read_sockaddr(sa, salen) {
+ var family = GROWABLE_HEAP_I16()[sa >> 1];
+ var port = _ntohs(GROWABLE_HEAP_U16()[sa + 2 >> 1]);
+ var addr;
+ switch (family) {
+ case 2:
+  if (salen !== 16) {
+   return {
+    errno: 28
+   };
+  }
+  addr = GROWABLE_HEAP_I32()[sa + 4 >> 2];
+  addr = __inet_ntop4_raw(addr);
+  break;
+
+ case 10:
+  if (salen !== 28) {
+   return {
+    errno: 28
+   };
+  }
+  addr = [ GROWABLE_HEAP_I32()[sa + 8 >> 2], GROWABLE_HEAP_I32()[sa + 12 >> 2], GROWABLE_HEAP_I32()[sa + 16 >> 2], GROWABLE_HEAP_I32()[sa + 20 >> 2] ];
+  addr = __inet_ntop6_raw(addr);
+  break;
+
+ default:
+  return {
+   errno: 5
+  };
+ }
+ return {
+  family: family,
+  addr: addr,
+  port: port
+ };
+}
+
+function __write_sockaddr(sa, family, addr, port) {
+ switch (family) {
+ case 2:
+  addr = __inet_pton4_raw(addr);
+  GROWABLE_HEAP_I16()[sa >> 1] = family;
+  GROWABLE_HEAP_I32()[sa + 4 >> 2] = addr;
+  GROWABLE_HEAP_I16()[sa + 2 >> 1] = _htons(port);
+  break;
+
+ case 10:
+  addr = __inet_pton6_raw(addr);
+  GROWABLE_HEAP_I32()[sa >> 2] = family;
+  GROWABLE_HEAP_I32()[sa + 8 >> 2] = addr[0];
+  GROWABLE_HEAP_I32()[sa + 12 >> 2] = addr[1];
+  GROWABLE_HEAP_I32()[sa + 16 >> 2] = addr[2];
+  GROWABLE_HEAP_I32()[sa + 20 >> 2] = addr[3];
+  GROWABLE_HEAP_I16()[sa + 2 >> 1] = _htons(port);
+  GROWABLE_HEAP_I32()[sa + 4 >> 2] = 0;
+  GROWABLE_HEAP_I32()[sa + 24 >> 2] = 0;
+  break;
+
+ default:
+  return {
+   errno: 5
+  };
+ }
+ return {};
+}
+
+function ___sys_socketcall(call, socketvararg) {
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(8, 1, call, socketvararg);
+ try {
+  SYSCALLS.varargs = socketvararg;
+  var getSocketFromFD = function() {
+   var socket = SOCKFS.getSocket(SYSCALLS.get());
+   if (!socket) throw new FS.ErrnoError(8);
+   return socket;
+  };
+  var getSocketAddress = function(allowNull) {
+   var addrp = SYSCALLS.get(), addrlen = SYSCALLS.get();
+   if (allowNull && addrp === 0) return null;
+   var info = __read_sockaddr(addrp, addrlen);
+   if (info.errno) throw new FS.ErrnoError(info.errno);
+   info.addr = DNS.lookup_addr(info.addr) || info.addr;
+   return info;
+  };
+  switch (call) {
+  case 1:
+   {
+    var domain = SYSCALLS.get(), type = SYSCALLS.get(), protocol = SYSCALLS.get();
+    var sock = SOCKFS.createSocket(domain, type, protocol);
+    assert(sock.stream.fd < 64);
+    return sock.stream.fd;
+   }
+
+  case 2:
+   {
+    var sock = getSocketFromFD(), info = getSocketAddress();
+    sock.sock_ops.bind(sock, info.addr, info.port);
+    return 0;
+   }
+
+  case 3:
+   {
+    var sock = getSocketFromFD(), info = getSocketAddress();
+    sock.sock_ops.connect(sock, info.addr, info.port);
+    return 0;
+   }
+
+  case 4:
+   {
+    var sock = getSocketFromFD(), backlog = SYSCALLS.get();
+    sock.sock_ops.listen(sock, backlog);
+    return 0;
+   }
+
+  case 5:
+   {
+    var sock = getSocketFromFD(), addr = SYSCALLS.get(), addrlen = SYSCALLS.get();
+    var newsock = sock.sock_ops.accept(sock);
+    if (addr) {
+     var res = __write_sockaddr(addr, newsock.family, DNS.lookup_name(newsock.daddr), newsock.dport);
+     assert(!res.errno);
+    }
+    return newsock.stream.fd;
+   }
+
+  case 6:
+   {
+    var sock = getSocketFromFD(), addr = SYSCALLS.get(), addrlen = SYSCALLS.get();
+    var res = __write_sockaddr(addr, sock.family, DNS.lookup_name(sock.saddr || "0.0.0.0"), sock.sport);
+    assert(!res.errno);
+    return 0;
+   }
+
+  case 7:
+   {
+    var sock = getSocketFromFD(), addr = SYSCALLS.get(), addrlen = SYSCALLS.get();
+    if (!sock.daddr) {
+     return -53;
+    }
+    var res = __write_sockaddr(addr, sock.family, DNS.lookup_name(sock.daddr), sock.dport);
+    assert(!res.errno);
+    return 0;
+   }
+
+  case 11:
+   {
+    var sock = getSocketFromFD(), message = SYSCALLS.get(), length = SYSCALLS.get(), flags = SYSCALLS.get(), dest = getSocketAddress(true);
+    if (!dest) {
+     return FS.write(sock.stream, GROWABLE_HEAP_I8(), message, length);
+    } else {
+     return sock.sock_ops.sendmsg(sock, GROWABLE_HEAP_I8(), message, length, dest.addr, dest.port);
+    }
+   }
+
+  case 12:
+   {
+    var sock = getSocketFromFD(), buf = SYSCALLS.get(), len = SYSCALLS.get(), flags = SYSCALLS.get(), addr = SYSCALLS.get(), addrlen = SYSCALLS.get();
+    var msg = sock.sock_ops.recvmsg(sock, len);
+    if (!msg) return 0;
+    if (addr) {
+     var res = __write_sockaddr(addr, sock.family, DNS.lookup_name(msg.addr), msg.port);
+     assert(!res.errno);
+    }
+    GROWABLE_HEAP_U8().set(msg.buffer, buf);
+    return msg.buffer.byteLength;
+   }
+
+  case 14:
+   {
+    return -50;
+   }
+
+  case 15:
+   {
+    var sock = getSocketFromFD(), level = SYSCALLS.get(), optname = SYSCALLS.get(), optval = SYSCALLS.get(), optlen = SYSCALLS.get();
+    if (level === 1) {
+     if (optname === 4) {
+      GROWABLE_HEAP_I32()[optval >> 2] = sock.error;
+      GROWABLE_HEAP_I32()[optlen >> 2] = 4;
+      sock.error = null;
+      return 0;
+     }
+    }
+    return -50;
+   }
+
+  case 16:
+   {
+    var sock = getSocketFromFD(), message = SYSCALLS.get(), flags = SYSCALLS.get();
+    var iov = GROWABLE_HEAP_I32()[message + 8 >> 2];
+    var num = GROWABLE_HEAP_I32()[message + 12 >> 2];
+    var addr, port;
+    var name = GROWABLE_HEAP_I32()[message >> 2];
+    var namelen = GROWABLE_HEAP_I32()[message + 4 >> 2];
+    if (name) {
+     var info = __read_sockaddr(name, namelen);
+     if (info.errno) return -info.errno;
+     port = info.port;
+     addr = DNS.lookup_addr(info.addr) || info.addr;
+    }
+    var total = 0;
+    for (var i = 0; i < num; i++) {
+     total += GROWABLE_HEAP_I32()[iov + (8 * i + 4) >> 2];
+    }
+    var view = new Uint8Array(total);
+    var offset = 0;
+    for (var i = 0; i < num; i++) {
+     var iovbase = GROWABLE_HEAP_I32()[iov + (8 * i + 0) >> 2];
+     var iovlen = GROWABLE_HEAP_I32()[iov + (8 * i + 4) >> 2];
+     for (var j = 0; j < iovlen; j++) {
+      view[offset++] = GROWABLE_HEAP_I8()[iovbase + j >> 0];
+     }
+    }
+    return sock.sock_ops.sendmsg(sock, view, 0, total, addr, port);
+   }
+
+  case 17:
+   {
+    var sock = getSocketFromFD(), message = SYSCALLS.get(), flags = SYSCALLS.get();
+    var iov = GROWABLE_HEAP_I32()[message + 8 >> 2];
+    var num = GROWABLE_HEAP_I32()[message + 12 >> 2];
+    var total = 0;
+    for (var i = 0; i < num; i++) {
+     total += GROWABLE_HEAP_I32()[iov + (8 * i + 4) >> 2];
+    }
+    var msg = sock.sock_ops.recvmsg(sock, total);
+    if (!msg) return 0;
+    var name = GROWABLE_HEAP_I32()[message >> 2];
+    if (name) {
+     var res = __write_sockaddr(name, sock.family, DNS.lookup_name(msg.addr), msg.port);
+     assert(!res.errno);
+    }
+    var bytesRead = 0;
+    var bytesRemaining = msg.buffer.byteLength;
+    for (var i = 0; bytesRemaining > 0 && i < num; i++) {
+     var iovbase = GROWABLE_HEAP_I32()[iov + (8 * i + 0) >> 2];
+     var iovlen = GROWABLE_HEAP_I32()[iov + (8 * i + 4) >> 2];
+     if (!iovlen) {
+      continue;
+     }
+     var length = Math.min(iovlen, bytesRemaining);
+     var buf = msg.buffer.subarray(bytesRead, bytesRead + length);
+     GROWABLE_HEAP_U8().set(buf, iovbase + bytesRead);
+     bytesRead += length;
+     bytesRemaining -= length;
+    }
+    return bytesRead;
+   }
+
+  default:
+   {
+    return -52;
+   }
+  }
+ } catch (e) {
+  if (typeof FS === "undefined" || !(e instanceof FS.ErrnoError)) abort(e);
+  return -e.errno;
+ }
+}
+
 function ___sys_stat64(path, buf) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(7, 1, path, buf);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(9, 1, path, buf);
  try {
   path = SYSCALLS.getStr(path);
   return SYSCALLS.doStat(FS.stat, path, buf);
@@ -5353,7 +6352,7 @@ function ___sys_stat64(path, buf) {
 }
 
 function ___sys_unlink(path) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(8, 1, path);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(10, 1, path);
  try {
   path = SYSCALLS.getStr(path);
   FS.unlink(path);
@@ -7810,7 +8809,7 @@ var EGL = {
 };
 
 function _eglBindAPI(api) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(9, 1, api);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(11, 1, api);
  if (api == 12448) {
   EGL.setErrorCode(12288);
   return 1;
@@ -7821,7 +8820,7 @@ function _eglBindAPI(api) {
 }
 
 function _eglChooseConfig(display, attrib_list, configs, config_size, numConfigs) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(10, 1, display, attrib_list, configs, config_size, numConfigs);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(12, 1, display, attrib_list, configs, config_size, numConfigs);
  return EGL.chooseConfig(display, attrib_list, configs, config_size, numConfigs);
 }
 
@@ -8185,7 +9184,7 @@ var GL = {
 };
 
 function _eglCreateContext(display, config, hmm, contextAttribs) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(11, 1, display, config, hmm, contextAttribs);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(13, 1, display, config, hmm, contextAttribs);
  if (display != 62e3) {
   EGL.setErrorCode(12296);
   return 0;
@@ -8226,7 +9225,7 @@ function _eglCreateContext(display, config, hmm, contextAttribs) {
 }
 
 function _eglCreateWindowSurface(display, config, win, attrib_list) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(12, 1, display, config, win, attrib_list);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(14, 1, display, config, win, attrib_list);
  if (display != 62e3) {
   EGL.setErrorCode(12296);
   return 0;
@@ -8240,7 +9239,7 @@ function _eglCreateWindowSurface(display, config, win, attrib_list) {
 }
 
 function _eglDestroyContext(display, context) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(13, 1, display, context);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(15, 1, display, context);
  if (display != 62e3) {
   EGL.setErrorCode(12296);
   return 0;
@@ -8258,7 +9257,7 @@ function _eglDestroyContext(display, context) {
 }
 
 function _eglDestroySurface(display, surface) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(14, 1, display, surface);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(16, 1, display, surface);
  if (display != 62e3) {
   EGL.setErrorCode(12296);
   return 0;
@@ -8278,17 +9277,17 @@ function _eglDestroySurface(display, surface) {
 }
 
 function _eglGetCurrentContext() {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(15, 1);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(17, 1);
  return EGL.currentContext;
 }
 
 function _eglGetCurrentDisplay() {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(16, 1);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(18, 1);
  return EGL.currentContext ? 62e3 : 0;
 }
 
 function _eglGetCurrentSurface(readdraw) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(17, 1, readdraw);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(19, 1, readdraw);
  if (readdraw == 12378) {
   return EGL.currentReadSurface;
  } else if (readdraw == 12377) {
@@ -8300,18 +9299,18 @@ function _eglGetCurrentSurface(readdraw) {
 }
 
 function _eglGetDisplay(nativeDisplayType) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(18, 1, nativeDisplayType);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(20, 1, nativeDisplayType);
  EGL.setErrorCode(12288);
  return 62e3;
 }
 
 function _eglGetError() {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(19, 1);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(21, 1);
  return EGL.errorCode;
 }
 
 function _eglInitialize(display, majorVersion, minorVersion) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(20, 1, display, majorVersion, minorVersion);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(22, 1, display, majorVersion, minorVersion);
  if (display == 62e3) {
   if (majorVersion) {
    GROWABLE_HEAP_I32()[majorVersion >> 2] = 1;
@@ -8329,7 +9328,7 @@ function _eglInitialize(display, majorVersion, minorVersion) {
 }
 
 function _eglMakeCurrent(display, draw, read, context) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(21, 1, display, draw, read, context);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(23, 1, display, draw, read, context);
  if (display != 62e3) {
   EGL.setErrorCode(12296);
   return 0;
@@ -8351,7 +9350,7 @@ function _eglMakeCurrent(display, draw, read, context) {
 }
 
 function _eglTerminate(display) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(22, 1, display);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(24, 1, display);
  if (display != 62e3) {
   EGL.setErrorCode(12296);
   return 0;
@@ -8404,7 +9403,7 @@ function _emscripten_futex_wait(addr, val, timeout) {
 }
 
 function _emscripten_get_sbrk_ptr() {
- return 1065056;
+ return 1089056;
 }
 
 function _emscripten_is_main_browser_thread() {
@@ -8785,7 +9784,7 @@ function _emscripten_set_canvas_element_size_calling_thread(target, width, heigh
 }
 
 function _emscripten_set_canvas_element_size_main_thread(target, width, height) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(23, 1, target, width, height);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(25, 1, target, width, height);
  return _emscripten_set_canvas_element_size_calling_thread(target, width, height);
 }
 
@@ -8900,7 +9899,7 @@ function _exit(status) {
 }
 
 function _fd_close(fd) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(24, 1, fd);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(26, 1, fd);
  try {
   var stream = SYSCALLS.getStreamFromFD(fd);
   FS.close(stream);
@@ -8912,7 +9911,7 @@ function _fd_close(fd) {
 }
 
 function _fd_read(fd, iov, iovcnt, pnum) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(25, 1, fd, iov, iovcnt, pnum);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(27, 1, fd, iov, iovcnt, pnum);
  try {
   var stream = SYSCALLS.getStreamFromFD(fd);
   var num = SYSCALLS.doReadv(stream, iov, iovcnt);
@@ -8925,7 +9924,7 @@ function _fd_read(fd, iov, iovcnt, pnum) {
 }
 
 function _fd_seek(fd, offset_low, offset_high, whence, newOffset) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(26, 1, fd, offset_low, offset_high, whence, newOffset);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(28, 1, fd, offset_low, offset_high, whence, newOffset);
  try {
   var stream = SYSCALLS.getStreamFromFD(fd);
   var HIGH_OFFSET = 4294967296;
@@ -8946,7 +9945,7 @@ function _fd_seek(fd, offset_low, offset_high, whence, newOffset) {
 }
 
 function _fd_write(fd, iov, iovcnt, pnum) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(27, 1, fd, iov, iovcnt, pnum);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(29, 1, fd, iov, iovcnt, pnum);
  try {
   var stream = SYSCALLS.getStreamFromFD(fd);
   var num = SYSCALLS.doWritev(stream, iov, iovcnt);
@@ -8960,6 +9959,176 @@ function _fd_write(fd, iov, iovcnt, pnum) {
 
 function _getTempRet0() {
  return getTempRet0() | 0;
+}
+
+function _getaddrinfo(node, service, hint, out) {
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(30, 1, node, service, hint, out);
+ var addrs = [];
+ var canon = null;
+ var addr = 0;
+ var port = 0;
+ var flags = 0;
+ var family = 0;
+ var type = 0;
+ var proto = 0;
+ var ai, last;
+ function allocaddrinfo(family, type, proto, canon, addr, port) {
+  var sa, salen, ai;
+  var res;
+  salen = family === 10 ? 28 : 16;
+  addr = family === 10 ? __inet_ntop6_raw(addr) : __inet_ntop4_raw(addr);
+  sa = _malloc(salen);
+  res = __write_sockaddr(sa, family, addr, port);
+  assert(!res.errno);
+  ai = _malloc(32);
+  GROWABLE_HEAP_I32()[ai + 4 >> 2] = family;
+  GROWABLE_HEAP_I32()[ai + 8 >> 2] = type;
+  GROWABLE_HEAP_I32()[ai + 12 >> 2] = proto;
+  GROWABLE_HEAP_I32()[ai + 24 >> 2] = canon;
+  GROWABLE_HEAP_I32()[ai + 20 >> 2] = sa;
+  if (family === 10) {
+   GROWABLE_HEAP_I32()[ai + 16 >> 2] = 28;
+  } else {
+   GROWABLE_HEAP_I32()[ai + 16 >> 2] = 16;
+  }
+  GROWABLE_HEAP_I32()[ai + 28 >> 2] = 0;
+  return ai;
+ }
+ if (hint) {
+  flags = GROWABLE_HEAP_I32()[hint >> 2];
+  family = GROWABLE_HEAP_I32()[hint + 4 >> 2];
+  type = GROWABLE_HEAP_I32()[hint + 8 >> 2];
+  proto = GROWABLE_HEAP_I32()[hint + 12 >> 2];
+ }
+ if (type && !proto) {
+  proto = type === 2 ? 17 : 6;
+ }
+ if (!type && proto) {
+  type = proto === 17 ? 2 : 1;
+ }
+ if (proto === 0) {
+  proto = 6;
+ }
+ if (type === 0) {
+  type = 1;
+ }
+ if (!node && !service) {
+  return -2;
+ }
+ if (flags & ~(1 | 2 | 4 | 1024 | 8 | 16 | 32)) {
+  return -1;
+ }
+ if (hint !== 0 && GROWABLE_HEAP_I32()[hint >> 2] & 2 && !node) {
+  return -1;
+ }
+ if (flags & 32) {
+  return -2;
+ }
+ if (type !== 0 && type !== 1 && type !== 2) {
+  return -7;
+ }
+ if (family !== 0 && family !== 2 && family !== 10) {
+  return -6;
+ }
+ if (service) {
+  service = UTF8ToString(service);
+  port = parseInt(service, 10);
+  if (isNaN(port)) {
+   if (flags & 1024) {
+    return -2;
+   }
+   return -8;
+  }
+ }
+ if (!node) {
+  if (family === 0) {
+   family = 2;
+  }
+  if ((flags & 1) === 0) {
+   if (family === 2) {
+    addr = _htonl(2130706433);
+   } else {
+    addr = [ 0, 0, 0, 1 ];
+   }
+  }
+  ai = allocaddrinfo(family, type, proto, null, addr, port);
+  GROWABLE_HEAP_I32()[out >> 2] = ai;
+  return 0;
+ }
+ node = UTF8ToString(node);
+ addr = __inet_pton4_raw(node);
+ if (addr !== null) {
+  if (family === 0 || family === 2) {
+   family = 2;
+  } else if (family === 10 && flags & 8) {
+   addr = [ 0, 0, _htonl(65535), addr ];
+   family = 10;
+  } else {
+   return -2;
+  }
+ } else {
+  addr = __inet_pton6_raw(node);
+  if (addr !== null) {
+   if (family === 0 || family === 10) {
+    family = 10;
+   } else {
+    return -2;
+   }
+  }
+ }
+ if (addr != null) {
+  ai = allocaddrinfo(family, type, proto, node, addr, port);
+  GROWABLE_HEAP_I32()[out >> 2] = ai;
+  return 0;
+ }
+ if (flags & 4) {
+  return -2;
+ }
+ node = DNS.lookup_name(node);
+ addr = __inet_pton4_raw(node);
+ if (family === 0) {
+  family = 2;
+ } else if (family === 10) {
+  addr = [ 0, 0, _htonl(65535), addr ];
+ }
+ ai = allocaddrinfo(family, type, proto, null, addr, port);
+ GROWABLE_HEAP_I32()[out >> 2] = ai;
+ return 0;
+}
+
+function _getnameinfo(sa, salen, node, nodelen, serv, servlen, flags) {
+ var info = __read_sockaddr(sa, salen);
+ if (info.errno) {
+  return -6;
+ }
+ var port = info.port;
+ var addr = info.addr;
+ var overflowed = false;
+ if (node && nodelen) {
+  var lookup;
+  if (flags & 1 || !(lookup = DNS.lookup_addr(addr))) {
+   if (flags & 8) {
+    return -2;
+   }
+  } else {
+   addr = lookup;
+  }
+  var numBytesWrittenExclNull = stringToUTF8(addr, node, nodelen);
+  if (numBytesWrittenExclNull + 1 >= nodelen) {
+   overflowed = true;
+  }
+ }
+ if (serv && servlen) {
+  port = "" + port;
+  var numBytesWrittenExclNull = stringToUTF8(port, serv, servlen);
+  if (numBytesWrittenExclNull + 1 >= servlen) {
+   overflowed = true;
+  }
+ }
+ if (overflowed) {
+  return -12;
+ }
+ return 0;
 }
 
 function _glActiveTexture(x0) {
@@ -9038,6 +10207,10 @@ function _glClear(x0) {
 
 function _glClearColor(x0, x1, x2, x3) {
  GLctx["clearColor"](x0, x1, x2, x3);
+}
+
+function _glClearDepthf(x0) {
+ GLctx["clearDepth"](x0);
 }
 
 function _glCompileShader(shader) {
@@ -9550,10 +10723,6 @@ function _glGetString(name_) {
  }
  GL.stringCache[name_] = ret;
  return ret;
-}
-
-function jstoi_q(str) {
- return parseInt(str);
 }
 
 function _glGetUniformLocation(program, name) {
@@ -10179,6 +11348,17 @@ function _setTempRet0($i) {
  setTempRet0($i | 0);
 }
 
+var __sigalrm_handler = 0;
+
+function _signal(sig, func) {
+ if (sig == 14) {
+  __sigalrm_handler = func;
+ } else {
+  err("Calling stub instead of signal()");
+ }
+ return 0;
+}
+
 function __isLeapYear(year) {
  return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
 }
@@ -10479,7 +11659,7 @@ function _strftime_l(s, maxsize, format, tm) {
 }
 
 function _sysconf(name) {
- if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(28, 1, name);
+ if (ENVIRONMENT_IS_PTHREAD) return _emscripten_proxy_to_main_thread_js(31, 1, name);
  switch (name) {
  case 30:
   return 16384;
@@ -10780,7 +11960,7 @@ var GLctx;
 
 GL.init();
 
-var proxiedFunctionTable = [ null, _atexit, ___sys_fcntl64, ___sys_ioctl, ___sys_munmap, ___sys_open, ___sys_rmdir, ___sys_stat64, ___sys_unlink, _eglBindAPI, _eglChooseConfig, _eglCreateContext, _eglCreateWindowSurface, _eglDestroyContext, _eglDestroySurface, _eglGetCurrentContext, _eglGetCurrentDisplay, _eglGetCurrentSurface, _eglGetDisplay, _eglGetError, _eglInitialize, _eglMakeCurrent, _eglTerminate, _emscripten_set_canvas_element_size_main_thread, _fd_close, _fd_read, _fd_seek, _fd_write, _sysconf ];
+var proxiedFunctionTable = [ null, _atexit, ___sys_fcntl64, ___sys_ioctl, ___sys_munmap, ___sys_open, ___sys_read, ___sys_rmdir, ___sys_socketcall, ___sys_stat64, ___sys_unlink, _eglBindAPI, _eglChooseConfig, _eglCreateContext, _eglCreateWindowSurface, _eglDestroyContext, _eglDestroySurface, _eglGetCurrentContext, _eglGetCurrentDisplay, _eglGetCurrentSurface, _eglGetDisplay, _eglGetError, _eglInitialize, _eglMakeCurrent, _eglTerminate, _emscripten_set_canvas_element_size_main_thread, _fd_close, _fd_read, _fd_seek, _fd_write, _getaddrinfo, _sysconf ];
 
 var ASSERTIONS = true;
 
@@ -10815,6 +11995,7 @@ var asmLibraryArg = {
  "__cxa_allocate_exception": ___cxa_allocate_exception,
  "__cxa_atexit": ___cxa_atexit,
  "__cxa_begin_catch": ___cxa_begin_catch,
+ "__cxa_current_primary_exception": ___cxa_current_primary_exception,
  "__cxa_decrement_exception_refcount": ___cxa_decrement_exception_refcount,
  "__cxa_end_catch": ___cxa_end_catch,
  "__cxa_find_matching_catch_2": ___cxa_find_matching_catch_2,
@@ -10829,11 +12010,14 @@ var asmLibraryArg = {
  "__handle_stack_overflow": ___handle_stack_overflow,
  "__map_file": ___map_file,
  "__resumeException": ___resumeException,
+ "__sys__newselect": ___sys__newselect,
  "__sys_fcntl64": ___sys_fcntl64,
  "__sys_ioctl": ___sys_ioctl,
  "__sys_munmap": ___sys_munmap,
  "__sys_open": ___sys_open,
+ "__sys_read": ___sys_read,
  "__sys_rmdir": ___sys_rmdir,
+ "__sys_socketcall": ___sys_socketcall,
  "__sys_stat64": ___sys_stat64,
  "__sys_unlink": ___sys_unlink,
  "_embind_register_bool": __embind_register_bool,
@@ -10899,6 +12083,8 @@ var asmLibraryArg = {
  "fd_seek": _fd_seek,
  "fd_write": _fd_write,
  "getTempRet0": _getTempRet0,
+ "getaddrinfo": _getaddrinfo,
+ "getnameinfo": _getnameinfo,
  "glActiveTexture": _glActiveTexture,
  "glAttachShader": _glAttachShader,
  "glBindBuffer": _glBindBuffer,
@@ -10913,6 +12099,7 @@ var asmLibraryArg = {
  "glCheckFramebufferStatus": _glCheckFramebufferStatus,
  "glClear": _glClear,
  "glClearColor": _glClearColor,
+ "glClearDepthf": _glClearDepthf,
  "glCompileShader": _glCompileShader,
  "glCreateProgram": _glCreateProgram,
  "glCreateShader": _glCreateShader,
@@ -10992,6 +12179,7 @@ var asmLibraryArg = {
  "invoke_iiiiiiiiii": invoke_iiiiiiiiii,
  "invoke_iiiiiiiiiiii": invoke_iiiiiiiiiiii,
  "invoke_iiiiij": invoke_iiiiij,
+ "invoke_jii": invoke_jii,
  "invoke_v": invoke_v,
  "invoke_vi": invoke_vi,
  "invoke_vii": invoke_vii,
@@ -11017,6 +12205,7 @@ var asmLibraryArg = {
  "roundf": _roundf,
  "saveSetjmp": _saveSetjmp,
  "setTempRet0": _setTempRet0,
+ "signal": _signal,
  "strftime_l": _strftime_l,
  "sysconf": _sysconf,
  "table": wasmTable,
@@ -11064,6 +12253,12 @@ var _realloc = Module["_realloc"] = function() {
  return Module["asm"]["realloc"].apply(null, arguments);
 };
 
+var _ntohs = Module["_ntohs"] = function() {
+ assert(runtimeInitialized, "you need to wait for the runtime to be ready (e.g. wait for main() to be called)");
+ assert(!runtimeExited, "the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)");
+ return Module["asm"]["ntohs"].apply(null, arguments);
+};
+
 var ___getTypeName = Module["___getTypeName"] = function() {
  assert(runtimeInitialized, "you need to wait for the runtime to be ready (e.g. wait for main() to be called)");
  assert(!runtimeExited, "the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)");
@@ -11080,6 +12275,18 @@ var ___emscripten_pthread_data_constructor = Module["___emscripten_pthread_data_
  assert(runtimeInitialized, "you need to wait for the runtime to be ready (e.g. wait for main() to be called)");
  assert(!runtimeExited, "the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)");
  return Module["asm"]["__emscripten_pthread_data_constructor"].apply(null, arguments);
+};
+
+var _htonl = Module["_htonl"] = function() {
+ assert(runtimeInitialized, "you need to wait for the runtime to be ready (e.g. wait for main() to be called)");
+ assert(!runtimeExited, "the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)");
+ return Module["asm"]["htonl"].apply(null, arguments);
+};
+
+var _htons = Module["_htons"] = function() {
+ assert(runtimeInitialized, "you need to wait for the runtime to be ready (e.g. wait for main() to be called)");
+ assert(!runtimeExited, "the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)");
+ return Module["asm"]["htons"].apply(null, arguments);
 };
 
 var _emscripten_get_global_libc = Module["_emscripten_get_global_libc"] = function() {
@@ -11376,6 +12583,12 @@ var dynCall_iiiiid = Module["dynCall_iiiiid"] = function() {
  return Module["asm"]["dynCall_iiiiid"].apply(null, arguments);
 };
 
+var dynCall_jii = Module["dynCall_jii"] = function() {
+ assert(runtimeInitialized, "you need to wait for the runtime to be ready (e.g. wait for main() to be called)");
+ assert(!runtimeExited, "the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)");
+ return Module["asm"]["dynCall_jii"].apply(null, arguments);
+};
+
 var ___set_stack_limit = Module["___set_stack_limit"] = function() {
  assert(runtimeInitialized, "you need to wait for the runtime to be ready (e.g. wait for main() to be called)");
  assert(!runtimeExited, "the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)");
@@ -11512,6 +12725,12 @@ var dynCall_iiji = Module["dynCall_iiji"] = function() {
  assert(runtimeInitialized, "you need to wait for the runtime to be ready (e.g. wait for main() to be called)");
  assert(!runtimeExited, "the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)");
  return Module["asm"]["dynCall_iiji"].apply(null, arguments);
+};
+
+var dynCall_iijj = Module["dynCall_iijj"] = function() {
+ assert(runtimeInitialized, "you need to wait for the runtime to be ready (e.g. wait for main() to be called)");
+ assert(!runtimeExited, "the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)");
+ return Module["asm"]["dynCall_iijj"].apply(null, arguments);
 };
 
 var dynCall_viiiiiiiiiiiiiiii = Module["dynCall_viiiiiiiiiiiiiiii"] = function() {
@@ -11835,6 +13054,17 @@ function invoke_iiiiij(index, a1, a2, a3, a4, a5, a6) {
  var sp = stackSave();
  try {
   return dynCall_iiiiij(index, a1, a2, a3, a4, a5, a6);
+ } catch (e) {
+  stackRestore(sp);
+  if (e !== e + 0 && e !== "longjmp") throw e;
+  _setThrew(1, 0);
+ }
+}
+
+function invoke_jii(index, a1, a2) {
+ var sp = stackSave();
+ try {
+  return dynCall_jii(index, a1, a2);
  } catch (e) {
   stackRestore(sp);
   if (e !== e + 0 && e !== "longjmp") throw e;
@@ -12906,6 +14136,7 @@ let library = null;
 const CPUKernel = 1 << 6;
 const GLKernel = 1 << 12;
 
+
 const _virtualValueNames = [
     'VirtualValueInt',
     'VirtualValueFloat',
@@ -12927,7 +14158,7 @@ const _virtualValueNames = [
     'VirtualValueImageLAB8',
     'VirtualValueImageAlphaLAB8',
     'VirtualValueString',
-    'VirtualValueLABf',
+    'VirtualValueLABf'
 ];
 
 const _valueNames = [
@@ -13135,7 +14366,7 @@ class FactoryMethod {
                 inputsMap.set(e, dictArgs[e]);
             }
         }
-        return {inputs: inputsMap, name: name, device: device, kernel: kernel};
+        return { inputs: inputsMap, name: name, device: device, kernel: kernel };
     }
 
     _selectKernel(positionalArgs, dictArgs, device) {
@@ -13245,7 +14476,7 @@ class FactoryMethod {
         }
         const name = args.length > 1 ? args[1] : null;
         const device = args.length > 2 ? args[2] : library.Device.Unspecified;
-        return {value: value, initValue: initValue, name: name, device: device};
+        return { value: value, initValue: initValue, name: name, device: device };
     }
 };
 
@@ -13322,12 +14553,12 @@ function addValueMaps() {
 function _registerKernel(kernel) {
     const inputs = [];
     kernel.inputs.forEach(input => {
-        inputs.push({name: input.name, type: input.type, optional: ("default" in input)});
+        inputs.push({ name: input.name, type: input.type, optional: ("default" in input) });
     });
     const outputs = [];
     if (kernel.outputs) {
         kernel.outputs.forEach(output => {
-            outputs.push({name: output.name, type: output.type});
+            outputs.push({ name: output.name, type: output.type });
         });
     }
     const kernelName = kernel.name;
@@ -13374,8 +14605,9 @@ function tuneSessionClass() {
         return [vv, library._valueTypes[idx]];
     }).slice(1);
     library.Session.prototype._origRunValue = library.Session.prototype.runValue;
-    library.Session.prototype.runValue = function(value) {
-        const vv = this._origRunValue(value);
+    library.Session.prototype.runValue = function (value, token = null) {
+        let taskID = token === null ? 0 : token._start();
+        const vv = this._origRunValue(value, taskID);
         for (let i = 0; i < virtualToValue.length; ++i) {
             if (value instanceof virtualToValue[i][0]) {
                 const v = virtualToValue[i][1]._cast(vv);
@@ -13386,7 +14618,7 @@ function tuneSessionClass() {
         return vv;
     }
 
-    library.Session.prototype.deleteObjects = function() {
+    library.Session.prototype.deleteObjects = function () {
         const session = this._ptr();
         const objects = library._sessionObjects[session] || [];
         for (let i = 0; i < objects.length; ++i) {
@@ -13397,7 +14629,7 @@ function tuneSessionClass() {
 }
 
 function tuneImageClass(imgClass) {
-    imgClass.create = function(fileBuffer, encrypted = false) {
+    imgClass.create = function (fileBuffer, encrypted = false) {
         var bufferArray = new Uint8Array(fileBuffer);
         const numBytes = bufferArray.length * bufferArray.BYTES_PER_ELEMENT;
         const dataPtr = library._malloc(numBytes);
@@ -13425,7 +14657,7 @@ function tuneImageClass(imgClass) {
 
 function tuneBufferClass(bufferClass, vectorClass) {
     const oldProto = library.core[bufferClass].prototype;
-    library.core[bufferClass] = function(arr) {
+    library.core[bufferClass] = function (arr) {
         const vector = new vectorClass();
         arr.forEach(i => { vector.push_back(i); });
         const buffer = new oldProto.constructor(vector);
@@ -13447,8 +14679,8 @@ function moveClasses() {
     });
 
     _valueNames.forEach(v => {
-         library.graph.values[v] = library[v];
-         delete library[v];
+        library.graph.values[v] = library[v];
+        delete library[v];
     });
 }
 
@@ -13466,11 +14698,47 @@ function moveEffectClasses() {
     _fxResources.forEach(name => {
         library.fx.resources[name] = library[name];
         delete library[name];
-    }); 
+    });
+}
+
+
+class CancellationToken {
+    constructor() {
+        this._cancelled = false;
+        this._obtained = false;
+        this._taskID = 0;
+    }
+
+    _start() {
+        this._taskID = library.obtainInterruptObjectId();
+        this._obtained = true;
+        return this._taskID;
+    }
+
+    _stop() {
+        if (this._obtained) {
+            library.interruptObjectId(this._taskID);
+            library.releaseInterruptObjectId(this._taskID);
+            this._obtained = false;
+        }
+    }
+
+    cancel() {
+        this._cancelled = true;
+        this._stop();
+    }
+
+    isCancelled() {
+        return this._cancelled;
+    }
 }
 
 async function initializeLibrary() {
     library = await createPIModule();
+
+    // initialize interrupt flags
+    library.initInterruptFlags();
+    library.CancellationToken = CancellationToken;
 
     library.EGL.contextAttributes.premultipliedAlpha = false;
 
