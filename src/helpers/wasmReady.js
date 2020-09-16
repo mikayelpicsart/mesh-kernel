@@ -1,5 +1,5 @@
 import React, { createContext } from 'react';
-import { getWasm } from './pi';
+import { initializeLibrary } from './pi';
 
 export const WasmContext = createContext(null);
 
@@ -26,7 +26,7 @@ function useOnRuntimeInitializedReady() {
     }
     if (onRuntimeInitialized.status === 'not-init') {
         onRuntimeInitialized.status = 'pending';
-        throw onRuntimeInitialized.promise = getWasm().then(_ => {
+        throw onRuntimeInitialized.promise = initializeLibrary().then(_ => {
             onRuntimeInitialized.status = 'resolve';
         }).catch(error => {
             console.error(error);

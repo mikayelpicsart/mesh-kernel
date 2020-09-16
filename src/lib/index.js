@@ -17,11 +17,11 @@ export async function setNewSession(canvas = document.createElement('canvas')) {
             name: 'ImageView'
         });
         currentSessionIndex = sessions.push({ pi, session, view }) - 1;
-        function render() {
-            session.runValue(view.output);
-            requestAnimationFrame(render);
-        }
-        requestAnimationFrame(render);
+        // function render() {
+        //     session.runValue(view.output);
+        //     requestAnimationFrame(render);
+        // }
+        // requestAnimationFrame(render);
     })
 }
 
@@ -56,6 +56,7 @@ export class Layer {
                 input: this._pi.graph.basic_operations.Copy({ input: this.input }),
                 image: this._pi.graph.value.Image_ARGB_8888(),
                 model_matrix: this._modelMatrixValue,
+                blend_mode: this._pi.graph.value.Int(28),
                 projection_matrix: this._pi.graph.value.Buffer_Float(bufferProjectionMatrix)
             });
         });
@@ -88,6 +89,7 @@ export class Layer {
                 //addedIndex exist because defaultLeft is this.output and defaultRight id this.input added
                 input:  this._pi.graph.basic_operations.Copy({ input: array[addedIndex].meshPointer }),
                 image: this._pi.graph.value.Image_ARGB_8888(),
+                blend_mode: this._pi.graph.value.Int(28),
             });
             if(addedIndex === 1) {
                 this.output = meshPointer;

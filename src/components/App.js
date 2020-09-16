@@ -32,8 +32,7 @@ const arrayStickers = [
   'https://pastatic.picsart.com/58129437085591952634.png?to=min&r=100',
   'https://cdn131.picsart.com/333005104094211.png?to=min&r=100',
   'https://cdn131.picsart.com/333210081042211.png?to=min&r=100',
-  'https://pastatic.picsart.com/58129437085591952634.png?to=min&r=100',
-  'https://cdn131.picsart.com/333005104094211.png?to=min&r=100'
+  'https://pastatic.picsart.com/58129437085591952634.png?to=min&r=100'
 ]
 
 function App() {
@@ -48,10 +47,11 @@ function App() {
       const layers = buffers.map(buffer => ({ buffer, layer: new Layer() }))
         .map(({layer, buffer }) => { layer.setInput(buffer); return layer } );
       layers.forEach((layerItem, index, arr) => {
-       
-          layer.add(layerItem, { top: ((index % 19) * 5.26 + 2.63), left: Math.floor(index / 19) * 4 + 2 });
-         
-        
+        setTimeout(() => {
+          layer.add(layerItem, { top: ((index % 5) * 20.52 + 10.26), left: Math.floor(index / 5) * 16 + 4 });
+          layer.render();
+        }, index * 200)
+          
       })
       const layertest = new Layer();
       const buffertest = await getBufferFromUrl("https://cdn131.picsart.com/332918605060211.png?to=min&r=200");
